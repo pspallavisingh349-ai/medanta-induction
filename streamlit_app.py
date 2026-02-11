@@ -44,7 +44,7 @@ st.markdown("""
         min-height: 100vh;
     }
     
-    /* Floating particles - light blue theme */
+    /* Floating particles */
     .particles {
         position: fixed;
         top: 0;
@@ -218,7 +218,7 @@ st.markdown("""
         font-weight: 700;
     }
     
-    /* Hero Section - DARK TEXT for light background */
+    /* Hero Section */
     .hero-section {
         text-align: center;
         padding: 40px 20px;
@@ -329,6 +329,105 @@ st.markdown("""
         margin-bottom: 20px;
     }
     
+    /* Topic Cards for Assessment */
+    .topic-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .topic-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-left: 5px solid #1976d2;
+        transition: all 0.3s;
+    }
+    
+    .topic-card:hover {
+        transform: translateX(10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+    }
+    
+    .topic-name {
+        font-size: 1.2em;
+        font-weight: 700;
+        color: #263238;
+        margin-bottom: 10px;
+    }
+    
+    .topic-count {
+        color: #78909c;
+        font-size: 0.9em;
+        margin-bottom: 15px;
+    }
+    
+    .topic-status {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+    
+    .status-pending {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+    
+    .status-passed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .status-failed {
+        background: #ffebee;
+        color: #c62828;
+    }
+    
+    /* Report Card */
+    .report-card {
+        background: white;
+        border-radius: 25px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+    
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e3f2fd;
+    }
+    
+    .report-title {
+        font-size: 1.5em;
+        font-weight: 700;
+        color: #1565c0;
+    }
+    
+    .report-grade {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+        color: white;
+    }
+    
+    .grade-a { background: linear-gradient(135deg, #4caf50, #388e3c); }
+    .grade-b { background: linear-gradient(135deg, #2196f3, #1976d2); }
+    .grade-c { background: linear-gradient(135deg, #ff9800, #f57c00); }
+    .grade-f { background: linear-gradient(135deg, #f44336, #d32f2f); }
+    
     /* Contacts Section */
     .contacts-section {
         background: white;
@@ -392,12 +491,6 @@ st.markdown("""
         font-size: 1.1em;
     }
     
-    /* Special card for Training */
-    .contact-card-special {
-        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-        border-left: 4px solid #388e3c;
-    }
-    
     /* Progress bars */
     .progress-container {
         background: white;
@@ -421,30 +514,7 @@ st.markdown("""
         .stats-bar { grid-template-columns: repeat(2, 1fr); }
         .dashboard-grid { grid-template-columns: 1fr; }
         .hero-title { font-size: 1.8em; }
-    }
-    
-    /* Admin access button */
-    .admin-access {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(255,255,255,0.9);
-        padding: 12px 24px;
-        border-radius: 30px;
-        color: #1565c0;
-        text-decoration: none;
-        font-size: 0.9em;
-        font-weight: 600;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        border: 2px solid #1976d2;
-        transition: all 0.3s;
-        z-index: 100;
-    }
-    
-    .admin-access:hover {
-        background: #1976d2;
-        color: white;
-        transform: scale(1.05);
+        .topic-grid { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -493,14 +563,17 @@ def init_db():
     c.execute("""CREATE TABLE IF NOT EXISTS assessments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
+        topic TEXT,
         title TEXT NOT NULL,
-        score INTEGER,
+        score REAL,
         total_questions INTEGER DEFAULT 0,
         correct_answers INTEGER DEFAULT 0,
         status TEXT DEFAULT 'pending',
         time_taken INTEGER DEFAULT 0,
         completed_at TIMESTAMP,
         answers TEXT,
+        attempt_number INTEGER DEFAULT 1,
+        passed BOOLEAN DEFAULT 0,
         FOREIGN KEY (user_id) REFERENCES users (id)
     )""")
     
@@ -510,15 +583,18 @@ def init_db():
 def import_questions_from_csv():
     csv_path = "questions.csv"
     if not os.path.exists(csv_path):
-        return False, 0
+        return False, 0, []
     
     try:
+        # Read CSV with possible multiple sheets indication
         df = pd.read_csv(csv_path)
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("DELETE FROM questions")
         
         imported_count = 0
+        topics = set()
+        
         for _, row in df.iterrows():
             question = str(row.get('Question', '')).strip()
             if not question or pd.isna(question):
@@ -538,6 +614,8 @@ def import_questions_from_csv():
             if not topic or topic == 'nan':
                 topic = 'General'
             
+            topics.add(topic)
+            
             c.execute("""
                 INSERT INTO questions (question, options, correct_answer, category, marks)
                 VALUES (?, ?, ?, ?, ?)
@@ -546,47 +624,78 @@ def import_questions_from_csv():
         
         conn.commit()
         conn.close()
-        return True, imported_count
+        return True, imported_count, list(topics)
         
     except Exception as e:
         st.error(f"Import error: {e}")
-        return False, 0
+        return False, 0, []
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
-def get_question_count():
+def get_topics():
     conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM questions")
-    count = c.fetchone()[0]
+    c.execute("SELECT DISTINCT category FROM questions ORDER BY category")
+    topics = [row[0] for row in c.fetchall()]
     conn.close()
-    return count
+    return topics
 
-def get_stats():
+def get_questions_by_topic(topic):
     conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM users")
-    total_users = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM assessments WHERE status = 'completed'")
-    completed = c.fetchone()[0]
-    c.execute("SELECT AVG(score) FROM assessments WHERE status = 'completed'")
-    avg_score = c.fetchone()[0] or 0
-    c.execute("SELECT COUNT(*) FROM questions")
-    total_q = c.fetchone()[0]
+    c.execute("SELECT * FROM questions WHERE category = ?", (topic,))
+    questions = [dict(row) for row in c.fetchall()]
     conn.close()
-    return total_users, completed, avg_score, total_q
+    return questions
+
+def get_topic_stats(user_id, topic):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""SELECT * FROM assessments 
+                 WHERE user_id = ? AND topic = ? 
+                 ORDER BY attempt_number DESC LIMIT 1""", (user_id, topic))
+    result = c.fetchone()
+    conn.close()
+    return dict(result) if result else None
+
+def get_all_attempts(user_id, topic):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""SELECT * FROM assessments 
+                 WHERE user_id = ? AND topic = ? 
+                 ORDER BY attempt_number ASC""", (user_id, topic))
+    results = [dict(row) for row in c.fetchall()]
+    conn.close()
+    return results
+
+def get_user_report_card(user_id):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""SELECT topic, score, passed, attempt_number, completed_at 
+                 FROM assessments 
+                 WHERE user_id = ? AND status = 'completed'
+                 ORDER BY topic""", (user_id,))
+    results = [dict(row) for row in c.fetchall()]
+    
+    # Get unique topics
+    c.execute("SELECT DISTINCT category FROM questions")
+    all_topics = [row[0] for row in c.fetchall()]
+    conn.close()
+    
+    return results, all_topics
 
 # Initialize
 init_db()
 
 # Import questions on startup
 if 'questions_imported' not in st.session_state:
-    success, count = import_questions_from_csv()
+    success, count, topics = import_questions_from_csv()
     st.session_state.questions_imported = True
-    st.session_state.question_count = count if success else get_question_count()
+    st.session_state.question_count = count
+    st.session_state.available_topics = topics if topics else get_topics()
 
 # Session state
 if 'page' not in st.session_state:
@@ -595,6 +704,8 @@ if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
+if 'current_topic' not in st.session_state:
+    st.session_state.current_topic = None
 if 'current_question' not in st.session_state:
     st.session_state.current_question = 0
 if 'answers' not in st.session_state:
@@ -603,8 +714,10 @@ if 'start_time' not in st.session_state:
     st.session_state.start_time = None
 if 'questions' not in st.session_state:
     st.session_state.questions = []
+if 'attempt_number' not in st.session_state:
+    st.session_state.attempt_number = 1
 
-# ==================== LOGIN PAGE (FIRST SCREEN) ====================
+# ==================== LOGIN PAGE ====================
 def show_login():
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
@@ -680,32 +793,6 @@ def show_login():
             else:
                 st.error("Email not found. Please register first.")
             conn.close()
-        
-        st.markdown("<hr style='margin: 25px 0; opacity: 0.2;'>", unsafe_allow_html=True)
-        st.markdown('<p class="form-label" style="text-align: center;">Quick Access with ID</p>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            login_id = st.text_input("", placeholder="Participant ID", key="login_id", label_visibility="collapsed")
-        with col2:
-            if st.button("Go", use_container_width=True):
-                if login_id:
-                    try:
-                        conn = get_db()
-                        c = conn.cursor()
-                        c.execute("SELECT * FROM users WHERE id = ?", (int(login_id),))
-                        user = c.fetchone()
-                        conn.close()
-                        
-                        if user:
-                            st.session_state.user_id = user['id']
-                            st.session_state.user_name = user['name']
-                            st.session_state.page = 'dashboard'
-                            st.rerun()
-                        else:
-                            st.error("Invalid ID")
-                    except:
-                        st.error("Invalid ID")
     
     st.markdown("""
         </div>
@@ -721,7 +808,7 @@ def show_login():
         st.session_state.page = 'admin_login'
         st.rerun()
 
-# ==================== DASHBOARD PAGE (AFTER LOGIN) ====================
+# ==================== DASHBOARD PAGE ====================
 def show_dashboard():
     if not st.session_state.user_id:
         st.session_state.page = 'login'
@@ -761,7 +848,7 @@ def show_dashboard():
         <div class="hero-section">
             <h1 class="hero-title">Your Induction Dashboard</h1>
             <p class="hero-tagline">
-                Access your handbook, complete assessments, track your learning journey, 
+                Access your handbook, complete topic-wise assessments, track your learning journey, 
                 and connect with key contacts.
             </p>
         </div>
@@ -775,8 +862,8 @@ def show_dashboard():
                 <span class="stat-label">Questions</span>
             </div>
             <div class="stat-item">
-                <span class="stat-value">{total_users}</span>
-                <span class="stat-label">Employees</span>
+                <span class="stat-value">{len(st.session_state.available_topics)}</span>
+                <span class="stat-label">Topics</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value">{completed}</span>
@@ -789,17 +876,16 @@ def show_dashboard():
         </div>
     """, unsafe_allow_html=True)
     
-    # Feature Grid - USING STREAMLIT BUTTONS (not HTML onclick)
+    # Feature Grid
     st.markdown('<div class="dashboard-grid">', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        # Handbook Card
         st.markdown("""
             <div class="feature-card">
                 <div class="feature-icon">📚</div>
                 <div class="feature-title">Employee Handbook</div>
-                <div class="feature-desc">Access digital handbook, policies, and guidelines</div>
+                <div class="feature-desc">Access digital handbook with policies and guidelines</div>
             </div>
         """, unsafe_allow_html=True)
         if st.button("View Handbook", key="btn_handbook", use_container_width=True):
@@ -807,30 +893,24 @@ def show_dashboard():
             st.rerun()
     
     with col2:
-        # Assessment Card
         st.markdown(f"""
             <div class="feature-card">
                 <div class="feature-icon">📝</div>
                 <div class="feature-title">Assessment</div>
-                <div class="feature-desc">Complete your induction assessment ({total_q} questions)</div>
+                <div class="feature-desc">Topic-wise assessments ({len(st.session_state.available_topics)} topics)</div>
             </div>
         """, unsafe_allow_html=True)
         if st.button("Start Assessment", key="btn_assessment", use_container_width=True):
-            st.session_state.page = 'assessment'
-            st.session_state.questions = []
-            st.session_state.current_question = 0
-            st.session_state.answers = []
-            st.session_state.start_time = time.time()
+            st.session_state.page = 'topics'
             st.rerun()
     
     col3, col4 = st.columns(2)
     with col3:
-        # Journey Card
         st.markdown("""
             <div class="feature-card">
                 <div class="feature-icon">🎯</div>
                 <div class="feature-title">Learning Journey</div>
-                <div class="feature-desc">Track your progress and milestones</div>
+                <div class="feature-desc">Track progress with report card</div>
             </div>
         """, unsafe_allow_html=True)
         if st.button("View Journey", key="btn_journey", use_container_width=True):
@@ -838,7 +918,6 @@ def show_dashboard():
             st.rerun()
     
     with col4:
-        # Contacts Card
         st.markdown("""
             <div class="feature-card">
                 <div class="feature-icon">📞</div>
@@ -852,12 +931,12 @@ def show_dashboard():
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Key Contacts Section (Real numbers from your screenshot)
+    # Key Contacts Preview
     st.markdown("""
         <div class="contacts-section">
             <div class="section-title">
                 <span>📞</span>
-                <span>Key Contacts</span>
+                <span>Quick Contacts</span>
             </div>
             <div class="contact-grid">
                 <div class="contact-card">
@@ -871,22 +950,9 @@ def show_dashboard():
                     <div class="contact-number">📞 1010</div>
                 </div>
                 <div class="contact-card">
-                    <div class="contact-title">Salary Related</div>
-                    <div class="contact-person">HR Department</div>
-                    <div class="contact-number">📱 9560719167</div>
-                </div>
-                <div class="contact-card">
-                    <div class="contact-title">Onboarding Query</div>
-                    <div class="contact-person">HR Business Partner</div>
-                    <div class="contact-number-green">👤 Contact your HRBP</div>
-                </div>
-                <div class="contact-card contact-card-special" style="grid-column: 1 / -1;">
-                    <div class="contact-title">Training Related</div>
+                    <div class="contact-title">Training</div>
                     <div class="contact-person">Dr. Pallavi & Mr. Rohit</div>
-                    <div style="display: flex; gap: 20px; margin-top: 10px;">
-                        <div class="contact-number-green">📱 7860955988</div>
-                        <div class="contact-number-green">📱 7275181822</div>
-                    </div>
+                    <div class="contact-number-green">📱 7860955988</div>
                 </div>
             </div>
         </div>
@@ -910,10 +976,26 @@ def show_handbook():
     st.markdown("""
         <div class="hero-section">
             <h1 class="hero-title">📚 Employee Handbook</h1>
-            <p class="hero-tagline">Your guide to Medanta policies and procedures</p>
+            <p class="hero-tagline">Your complete guide to Medanta policies and procedures</p>
         </div>
     """, unsafe_allow_html=True)
     
+    # Embedded Handbook Link
+    st.markdown("""
+        <div style="background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 60px; margin-bottom: 20px;">📖</div>
+            <h3 style="color: #1565c0; margin-bottom: 15px;">Digital Employee Handbook</h3>
+            <p style="color: #78909c; margin-bottom: 25px;">Access the complete handbook with all policies, procedures, and guidelines</p>
+            <a href="https://online.flippingbook.com/view/652486186/" target="_blank" 
+               style="display: inline-block; background: linear-gradient(135deg, #1976d2, #1565c0); color: white; 
+                      padding: 16px 40px; border-radius: 30px; text-decoration: none; font-weight: 600; 
+                      font-size: 16px; box-shadow: 0 10px 30px rgba(25,118,210,0.3);">
+                📖 Open Handbook
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Quick sections
     sections = [
         ("🏥", "About Medanta", "Our history, mission, vision, and values"),
         ("👔", "Code of Conduct", "Professional standards and behavior guidelines"),
@@ -926,29 +1008,92 @@ def show_handbook():
     for icon, title, desc in sections:
         with st.expander(f"{icon} {title}"):
             st.write(desc)
-            st.info("Detailed content will be loaded from your handbook document.")
-            st.button(f"Read {title}", key=f"read_{title}")
+            st.info("For detailed information, please refer to the Digital Handbook above.")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ==================== ASSESSMENT PAGE ====================
-def show_assessment():
+# ==================== TOPICS PAGE ====================
+def show_topics():
     if not st.session_state.user_id:
         st.session_state.page = 'login'
         st.rerun()
         return
     
-    # Load questions
-    if not st.session_state.questions:
-        conn = get_db()
-        c = conn.cursor()
-        c.execute("SELECT * FROM questions")
-        rows = c.fetchall()
-        st.session_state.questions = [dict(row) for row in rows]
-        conn.close()
+    st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
+    
+    if st.button("← Back to Dashboard", key="back_dash"):
+        st.session_state.page = 'dashboard'
+        st.rerun()
+    
+    st.markdown("""
+        <div class="hero-section">
+            <h1 class="hero-title">📝 Topic-wise Assessment</h1>
+            <p class="hero-tagline">Complete assessments for each topic. You need 70% to pass. Unlimited attempts allowed!</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    topics = st.session_state.available_topics
+    
+    for topic in topics:
+        # Get stats for this topic
+        stats = get_topic_stats(st.session_state.user_id, topic)
+        questions = get_questions_by_topic(topic)
+        q_count = len(questions)
+        
+        # Determine status
+        if stats:
+            if stats['passed']:
+                status_class = "status-passed"
+                status_text = f"✓ Passed ({stats['score']:.0f}%)"
+                btn_text = "Retake (Optional)"
+                btn_type = "secondary"
+            else:
+                status_class = "status-failed"
+                status_text = f"✗ Failed ({stats['score']:.0f}%) - Attempt {stats['attempt_number']}"
+                btn_text = "Retake Assessment"
+                btn_type = "primary"
+        else:
+            status_class = "status-pending"
+            status_text = "Not Started"
+            btn_text = "Start Assessment"
+            btn_type = "primary"
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"""
+                <div class="topic-card">
+                    <div class="topic-name">{topic}</div>
+                    <div class="topic-count">{q_count} questions • Passing: 70%</div>
+                    <span class="topic-status {status_class}">{status_text}</span>
+                </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            if st.button(btn_text, key=f"topic_{topic}", use_container_width=True, type=btn_type):
+                st.session_state.current_topic = topic
+                st.session_state.questions = questions
+                st.session_state.current_question = 0
+                st.session_state.answers = []
+                st.session_state.start_time = time.time()
+                # Get attempt number
+                if stats:
+                    st.session_state.attempt_number = stats['attempt_number'] + 1
+                else:
+                    st.session_state.attempt_number = 1
+                st.session_state.page = 'assessment'
+                st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==================== ASSESSMENT PAGE ====================
+def show_assessment():
+    if not st.session_state.user_id or not st.session_state.current_topic:
+        st.session_state.page = 'login'
+        st.rerun()
+        return
     
     questions = st.session_state.questions
     current = st.session_state.current_question
+    topic = st.session_state.current_topic
     
     if current >= len(questions):
         submit_assessment()
@@ -959,17 +1104,16 @@ def show_assessment():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    # Back button
+    # Header
     if st.button("← Exit Assessment", key="exit_assessment"):
-        st.session_state.page = 'dashboard'
+        st.session_state.page = 'topics'
         st.rerun()
     
-    # Progress
     st.markdown(f"""
         <div class="progress-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span style="font-weight: 700; color: #37474f; font-size: 18px;">
-                    Question {current + 1} of {total_questions}
+                    {topic} • Question {current + 1} of {total_questions}
                 </span>
                 <span style="background: linear-gradient(135deg, #1976d2, #42a5f5); color: white; 
                              padding: 10px 20px; border-radius: 25px; font-weight: 600;">
@@ -979,6 +1123,9 @@ def show_assessment():
             <div style="background: #e3f2fd; height: 12px; border-radius: 6px; overflow: hidden;">
                 <div style="width: {progress}%; height: 100%; background: linear-gradient(90deg, #1976d2, #42a5f5); 
                             border-radius: 6px; transition: width 0.5s ease;"></div>
+            </div>
+            <div style="margin-top: 10px; text-align: center; color: #78909c; font-size: 0.9em;">
+                Attempt #{st.session_state.attempt_number} • Need 70% to pass
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -990,7 +1137,7 @@ def show_assessment():
     st.markdown(f"""
         <div class="question-card">
             <div style="color: #1976d2; font-size: 13px; font-weight: 700; text-transform: uppercase; 
-                        letter-spacing: 1.5px; margin-bottom: 15px;">{q['category']}</div>
+                        letter-spacing: 1.5px; margin-bottom: 15px;">{topic}</div>
             <div style="font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5;">{q['question']}</div>
         </div>
     """, unsafe_allow_html=True)
@@ -1031,20 +1178,21 @@ def submit_assessment():
     questions = st.session_state.questions
     answers = st.session_state.answers
     time_taken = int(time.time() - st.session_state.start_time)
+    topic = st.session_state.current_topic
     
     correct = sum(1 for i, ans in enumerate(answers) 
                   if i < len(questions) and ans == questions[i]['correct_answer'])
     total = len(questions)
     score = (correct / total * 100) if total > 0 else 0
+    passed = score >= 70
     
     conn = get_db()
     c = conn.cursor()
-    c.execute("""INSERT INTO assessments (user_id, title, score, total_questions, correct_answers, 
-                                          status, time_taken, completed_at, answers)
-                 VALUES (?, ?, ?, ?, ?, 'completed', ?, datetime('now'), ?)""",
-        (st.session_state.user_id, "Induction Assessment", score, total, correct, time_taken, json.dumps(answers)))
-    c.execute("UPDATE users SET status = 'completed', completion_percentage = ? WHERE id = ?", 
-              (score, st.session_state.user_id))
+    c.execute("""INSERT INTO assessments (user_id, topic, title, score, total_questions, correct_answers, 
+                                          status, time_taken, completed_at, answers, attempt_number, passed)
+                 VALUES (?, ?, ?, ?, ?, ?, 'completed', ?, datetime('now'), ?, ?, ?)""",
+        (st.session_state.user_id, topic, f"{topic} Assessment", score, total, correct, 
+         time_taken, json.dumps(answers), st.session_state.attempt_number, passed))
     conn.commit()
     conn.close()
     
@@ -1060,8 +1208,10 @@ def show_result():
     
     conn = get_db()
     c = conn.cursor()
-    c.execute("""SELECT * FROM assessments WHERE user_id = ? AND status = 'completed' 
-                 ORDER BY completed_at DESC LIMIT 1""", (st.session_state.user_id,))
+    c.execute("""SELECT * FROM assessments 
+                 WHERE user_id = ? AND topic = ? 
+                 ORDER BY completed_at DESC LIMIT 1""", 
+              (st.session_state.user_id, st.session_state.current_topic))
     result = c.fetchone()
     conn.close()
     
@@ -1069,7 +1219,8 @@ def show_result():
         st.error("No assessment found")
         return
     
-    passed = result['score'] >= 70
+    passed = result['passed']
+    score = result['score']
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
@@ -1078,50 +1229,58 @@ def show_result():
         st.markdown(f"""
             <div style="background: white; border-radius: 30px; padding: 50px 40px; text-align: center; 
                         margin-top: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.15);">
-                <div style="font-size: 80px; margin-bottom: 20px;">{'🎉' if passed else '👏'}</div>
+                <div style="font-size: 80px; margin-bottom: 20px;">{'🎉' if passed else '⚠️'}</div>
                 <h2 style="color: {'#1976d2' if passed else '#ff7043'}; margin: 0; font-size: 36px; font-weight: 800;">
-                    {'Congratulations!' if passed else 'Great Effort!'}
+                    {'Congratulations!' if passed else 'Keep Trying!'}
                 </h2>
-                <p style="color: #78909c; margin: 15px 0 40px 0; font-size: 18px;">
-                    {'You successfully passed!' if passed else 'Thank you for completing.'}
+                <p style="color: #78909c; margin: 15px 0 30px 0; font-size: 18px;">
+                    {'You passed the assessment!' if passed else 'You need 70% to pass. Try again!'}
                 </p>
                 
-                <div style="width: 200px; height: 200px; margin: 0 auto 40px auto; border-radius: 50%; 
-                            background: {'linear-gradient(135deg, #1976d2, #42a5f5)' if passed else 'linear-gradient(135deg, #ff7043, #f4511e)'};
+                <div style="width: 180px; height: 180px; margin: 0 auto 30px auto; border-radius: 50%; 
+                            background: {'linear-gradient(135deg, #4caf50, #388e3c)' if passed else 'linear-gradient(135deg, #ff9800, #f57c00)'};
                             display: flex; align-items: center; justify-content: center; 
                             box-shadow: 0 20px 50px rgba(0,0,0,0.15);">
-                    <span style="color: white; font-size: 56px; font-weight: 800;">{result['score']:.0f}%</span>
+                    <span style="color: white; font-size: 48px; font-weight: 800;">{score:.0f}%</span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-around; margin-bottom: 30px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 32px; font-weight: 800; color: #37474f;">{result['correct_answers']}</div>
-                        <div style="font-size: 14px; color: #90a4ae;">Correct</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 32px; font-weight: 800; color: #37474f;">{result['total_questions']}</div>
-                        <div style="font-size: 14px; color: #90a4ae;">Total</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 32px; font-weight: 800; color: #37474f;">{result['time_taken']//60}m</div>
-                        <div style="font-size: 14px; color: #90a4ae;">Time</div>
-                    </div>
+                <div style="background: {'#e8f5e9' if passed else '#fff3e0'}; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                    <p style="margin: 0; color: {'#2e7d32' if passed else '#ef6c00'}; font-size: 16px; font-weight: 600;">
+                        {'✓ Topic Completed! Move to next topic.' if passed else f'⚠ Attempt #{result["attempt_number"]} • Try again to score 70%+'}
+                    </p>
                 </div>
             </div>
         """, unsafe_allow_html=True)
         
-        if st.button("🏠 Back to Dashboard", use_container_width=True, type="primary"):
-            st.session_state.page = 'dashboard'
-            st.rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🏠 Dashboard", use_container_width=True):
+                st.session_state.page = 'dashboard'
+                st.rerun()
+        with col2:
+            if st.button("📋 Back to Topics", use_container_width=True, type="primary"):
+                st.session_state.page = 'topics'
+                st.rerun()
+        
+        if not passed:
+            if st.button("🔄 Retake Assessment", use_container_width=True, type="primary"):
+                st.session_state.current_question = 0
+                st.session_state.answers = []
+                st.session_state.start_time = time.time()
+                st.session_state.attempt_number = result['attempt_number'] + 1
+                st.session_state.page = 'assessment'
+                st.rerun()
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ==================== JOURNEY PAGE ====================
+# ==================== JOURNEY PAGE WITH REPORT CARD ====================
 def show_journey():
     if not st.session_state.user_id:
         st.session_state.page = 'login'
         st.rerun()
         return
+    
+    reports, all_topics = get_user_report_card(st.session_state.user_id)
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
@@ -1132,34 +1291,130 @@ def show_journey():
     st.markdown("""
         <div class="hero-section">
             <h1 class="hero-title">🎯 Learning Journey</h1>
-            <p class="hero-tagline">Track your induction progress</p>
+            <p class="hero-tagline">Track your progress and view your report card</p>
         </div>
     """, unsafe_allow_html=True)
     
-    steps = [
-        ("✅", "Registration", "Complete your profile", True),
-        ("📖", "Handbook Review", "Read employee handbook", False),
-        ("📝", "Assessment", "Complete induction test", False),
-        ("🎓", "Certification", "Download certificate", False)
-    ]
+    # Calculate overall stats
+    passed_topics = sum(1 for r in reports if r['passed'])
+    total_attempts = len(reports)
+    avg_score = sum(r['score'] for r in reports) / len(reports) if reports else 0
     
-    for i, (icon, title, desc, completed) in enumerate(steps):
-        col1, col2 = st.columns([1, 10])
-        with col1:
-            color = "#1976d2" if completed else "#e0e0e0"
-            st.markdown(f"""
-                <div style="width: 50px; height: 50px; background: {color}; border-radius: 50%; 
-                            display: flex; align-items: center; justify-content: center; color: white; 
-                            font-size: 24px; margin: 0 auto;">{icon}</div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"""
-                <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.08);">
-                    <div style="font-weight: 700; color: #263238; font-size: 18px;">{title}</div>
-                    <div style="color: #78909c;">{desc}</div>
+    # Overall Progress
+    st.markdown(f"""
+        <div class="stats-bar" style="margin-bottom: 30px;">
+            <div class="stat-item">
+                <span class="stat-value">{passed_topics}/{len(all_topics)}</span>
+                <span class="stat-label">Topics Passed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{total_attempts}</span>
+                <span class="stat-label">Total Attempts</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{avg_score:.0f}%</span>
+                <span class="stat-label">Avg Score</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{len(all_topics) - passed_topics}</span>
+                <span class="stat-label">Remaining</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Report Card
+    st.markdown("""
+        <div class="report-card">
+            <div class="report-header">
+                <div>
+                    <div class="report-title">📊 Report Card</div>
+                    <div style="color: #78909c; font-size: 0.9em;">{st.session_state.user_name}</div>
                 </div>
-            """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
+    # Calculate grade
+    if avg_score >= 90:
+        grade, grade_class = "A", "grade-a"
+    elif avg_score >= 80:
+        grade, grade_class = "B", "grade-b"
+    elif avg_score >= 70:
+        grade, grade_class = "C", "grade-c"
+    else:
+        grade, grade_class = "F", "grade-f"
+    
+    st.markdown(f"""
+                <div class="report-grade {grade_class}">{grade}</div>
+            </div>
+    """, unsafe_allow_html=True)
+    
+    # Topic-wise results table
+    if reports:
+        st.markdown("""
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #e3f2fd;">
+                        <th style="padding: 15px; text-align: left; color: #1565c0; font-weight: 600;">Topic</th>
+                        <th style="padding: 15px; text-align: center; color: #1565c0; font-weight: 600;">Score</th>
+                        <th style="padding: 15px; text-align: center; color: #1565c0; font-weight: 600;">Status</th>
+                        <th style="padding: 15px; text-align: center; color: #1565c0; font-weight: 600;">Attempts</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """, unsafe_allow_html=True)
+        
+        for report in reports:
+            status_color = "#4caf50" if report['passed'] else "#f44336"
+            status_icon = "✓" if report['passed'] else "✗"
+            st.markdown(f"""
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                    <td style="padding: 15px; font-weight: 500;">{report['topic']}</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700;">{report['score']:.0f}%</td>
+                    <td style="padding: 15px; text-align: center; color: {status_color}; font-weight: 600;">{status_icon} {'Passed' if report['passed'] else 'Failed'}</td>
+                    <td style="padding: 15px; text-align: center;">#{report['attempt_number']}</td>
+                </tr>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("</tbody></table>", unsafe_allow_html=True)
+    else:
+        st.info("No assessments completed yet. Start your learning journey!")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Progress Tracker
+    st.markdown("""
+        <div class="report-card">
+            <div class="report-title" style="margin-bottom: 25px;">🗺️ Progress Tracker</div>
+    """, unsafe_allow_html=True)
+    
+    for topic in all_topics:
+        # Find best score for this topic
+        topic_reports = [r for r in reports if r['topic'] == topic]
+        if topic_reports:
+            best = max(topic_reports, key=lambda x: x['score'])
+            passed = best['passed']
+            score = best['score']
+            status_icon = "✅" if passed else "⚠️"
+            color = "#4caf50" if passed else "#ff9800"
+        else:
+            passed = False
+            score = 0
+            status_icon = "⭕"
+            color = "#e0e0e0"
+        
+        st.markdown(f"""
+            <div style="display: flex; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                <div style="font-size: 30px; margin-right: 20px;">{status_icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #263238;">{topic}</div>
+                    <div style="color: #78909c; font-size: 0.9em;">{'Best: ' + f'{score:.0f}%' if score > 0 else 'Not started'}</div>
+                </div>
+                <div style="width: 100px; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden;">
+                    <div style="width: {score}%; height: 100%; background: {color}; border-radius: 5px;"></div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==================== CONTACTS PAGE ====================
@@ -1182,7 +1437,6 @@ def show_contacts():
         </div>
     """, unsafe_allow_html=True)
     
-    # All contacts from your screenshot
     contacts = [
         ("EMR/HIS Query", "Mr. Surjendra", "9883111600", "red"),
         ("IT Helpdesk", "Internal Extension", "1010", "red"),
@@ -1203,7 +1457,7 @@ def show_contacts():
                 </div>
             """, unsafe_allow_html=True)
     
-    # Training contact (special green card)
+    # Training contact
     st.markdown("""
         <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); padding: 25px; border-radius: 15px; 
                     margin-bottom: 20px; border-left: 4px solid #388e3c;">
@@ -1281,8 +1535,7 @@ def show_admin_dashboard():
         if completed > 0:
             st.bar_chart({"Completed": [completed], "Pending": [total_users - completed]})
         
-        # Debug info
-        st.info(f"Questions loaded from CSV: {st.session_state.get('question_count', 'Unknown')}")
+        st.info(f"Topics: {', '.join(st.session_state.available_topics[:5])}...")
     
     elif admin_page == "👥 Participants":
         st.title("All Participants")
@@ -1332,8 +1585,9 @@ def show_admin_dashboard():
     elif admin_page == "📁 Import CSV":
         st.title("Import Questions")
         st.info(f"Current question count: {total_q}")
+        st.info(f"Topics: {len(st.session_state.available_topics)}")
         
-        uploaded = st.file_uploader("Upload CSV", type="csv")
+        uploaded = st.file_uploader("Upload CSV with columns: Question, Option A, Option B, Option C, Option D, Answer, Topic", type="csv")
         
         if uploaded:
             df = pd.read_csv(uploaded)
@@ -1342,10 +1596,12 @@ def show_admin_dashboard():
             
             if st.button("Import to Database", use_container_width=True, type="primary"):
                 df.to_csv("questions.csv", index=False)
-                success, count = import_questions_from_csv()
+                success, count, topics = import_questions_from_csv()
                 if success:
                     st.success(f"✅ Imported {count} questions!")
+                    st.success(f"Topics found: {', '.join(topics)}")
                     st.session_state.question_count = count
+                    st.session_state.available_topics = topics
                     st.balloons()
                 else:
                     st.error("❌ Import failed")
@@ -1362,6 +1618,8 @@ def main():
         show_dashboard()
     elif page == 'handbook':
         show_handbook()
+    elif page == 'topics':
+        show_topics()
     elif page == 'assessment':
         show_assessment()
     elif page == 'result':
