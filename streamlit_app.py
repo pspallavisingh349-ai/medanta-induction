@@ -66,7 +66,8 @@ def get_db():
 init_db()
 
 # Sidebar navigation
-st.sidebar.image("frontend/Medanta Lucknow Logo.jpg", width=200)
+# st.sidebar.image("frontend/Medanta Lucknow Logo.jpg", width=200)
+st.sidebar.title("🏥 Medanta")
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", [
     "📊 Dashboard",
@@ -321,4 +322,5 @@ elif page == "❓ View Questions":
 
 # Footer
 st.sidebar.markdown("---")
+
 st.sidebar.info("Medanta Induction Portal v2.0")
