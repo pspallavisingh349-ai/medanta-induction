@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medanta - Employee Induction Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .left-panel {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .logo img {
+            width: 80px;
+            height: auto;
+        }
+        
+        .left-panel h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .left-panel p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .right-panel {
+            padding: 40px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #e53935;
+            border-bottom: 3px solid #e53935;
+        }
+        
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #e53935;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(229, 57, 53, 0.3);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .admin-link a {
+            color: #e53935;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .left-panel {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="logo">
+                <img src="backend/Medanta Lucknow Logo.jpg" alt="Medanta Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>'">
+            </div>
+            <h1>Welcome to Medanta</h1>
+            <p>Begin your journey with us. Complete your induction to become part of our family dedicated to delivering exceptional healthcare.</p>
+        </div>
+        
+        <div class="right-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('register')">New Registration</div>
+                <div class="tab" onclick="switchTab('login')">Continue Assessment</div>
+            </div>
+            
+            <!-- Registration Form -->
+            <div id="registerForm" class="form-container active">
+                <div id="registerAlert" class="alert"></div>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="regName" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="regEmail" required placeholder="your.email@medanta.org">
+                    </div>
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="regDept" required>
+                            <option value="">Select Department</option>
+                            <option value="Nursing">Nursing</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Administration">Administration</option>
+                            <option value="HR">Human Resources</option>
+                            <option value="Finance">Finance</option>
+                            <option value="IT">Information Technology</option>
+                            <option value="Operations">Operations</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Designation *</label>
+                        <input type="text" id="regRole" required placeholder="e.g., Staff Nurse, Doctor, Manager">
+                    </div>
+                    <div class="form-group">
+                        <label>Employee ID</label>
+                        <input type="text" id="regEmpId" placeholder="If available">
+                    </div>
+                    <button type="submit" id="regBtn">Register & Start Assessment</button>
+                </form>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="form-container">
+                <div id="loginAlert" class="alert"></div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="Enter your registered email">
+                    </div>
+                    <button type="submit">Continue My Assessment</button>
+                </form>
+                <p style="margin-top: 20px; color: #666; text-align: center;">
+                    Or enter your Participant ID:
+                </p>
+                <div class="form-group">
+                    <input type="text" id="loginId" placeholder="Participant ID">
+                </div>
+                <button onclick="continueWithId()">Continue with ID</button>
+            </div>
+            
+            <div class="admin-link">
+                <a href="admin.html">🔐 Administrator Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'register') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            }
+        }
+        
+        function showAlert(id, message, type) {
+            const alert = document.getElementById(id);
+            alert.textContent = message;
+            alert.className = 'alert ' + type;
+            setTimeout(() => alert.className = 'alert', 5000);
+        }
+        
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (data) options.body = JSON.stringify(data);
+            
+            const response = await fetch(`${API_URL}${endpoint}`, options);
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.detail || 'Error occurred');
+            return result;
+        }
+        
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+            
+            try {
+                const data = {
+                    name: document.getElementById('regName').value,
+                    email: document.getElementById('regEmail').value,
+                    department: document.getElementById('regDept').value,
+                    role: document.getElementById('regRole').value,
+                    employee_id: document.getElementById('regEmpId').value || null
+                };
+                
+                const result = await apiCall('/api/register', 'POST', data);
+                
+                localStorage.setItem('participantId', result.data.id);
+                localStorage.setItem('participantName', result.data.name);
+                
+                showAlert('registerAlert', 'Registration successful! Redirecting to assessment...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'assessment.html';
+                }, 1500);
+                
+            } catch (error) {
+                showAlert('registerAlert', error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Register & Start Assessment';
+            }
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            
+            try {
+                const result = await apiCall(`/api/participant/email/${email}`);
+                localStorage.setItem('participantId', result.data.id);
+                localStorage.setItem('participantName', result.data.name);
+                
+                if (result.data.status === 'completed') {
+                    window.location.href = 'result.html?id=' + result.data.id;
+                } else {
+                    window.location.href = 'assessment.html';
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Email not found. Please register first.', 'error');
+            }
+        }
+        
+        function continueWithId() {
+            const id = document.getElementById('loginId').value;
+            if (!id) {
+                showAlert('loginAlert', 'Please enter a Participant ID', 'error');
+                return;
+            }
+            localStorage.setItem('participantId', id);
+            window.location.href = 'assessment.html';
+        }
+    </script>
+</body>
+</html>

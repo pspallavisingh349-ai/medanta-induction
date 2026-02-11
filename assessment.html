@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment - Medanta Induction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo-section img {
+            height: 50px;
+            background: white;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #e53935, #ff6b6b);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .question-number {
+            color: #e53935;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .question-text {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .option {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .option:hover {
+            border-color: #e53935;
+            background: #fff5f5;
+        }
+        
+        .option.selected {
+            border-color: #e53935;
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+        }
+        
+        .option-letter {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .option.selected .option-letter {
+            background: white;
+            color: #e53935;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-prev {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-prev:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-next, .btn-submit {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-next:hover, .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(229, 57, 53, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 100px;
+            font-size: 20px;
+            color: #666;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #e53935;
+            margin-bottom: 10px;
+        }
+        
+        .result-message {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .question-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <img src="backend/Medanta Lucknow Logo.jpg" alt="Medanta" onerror="this.style.display='none'">
+            <div>
+                <h2>Induction Assessment</h2>
+                <p id="participantName">Welcome!</p>
+            </div>
+        </div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+    
+    <div class="container" id="assessmentContainer">
+        <div class="loading">Loading assessment...</div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        let questions = [];
+        let currentQuestion = 0;
+        let answers = [];
+        let startTime = Date.now();
+        let timerInterval;
+        
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (data) options.body = JSON.stringify(data);
+            
+            const response = await fetch(`${API_URL}${endpoint}`, options);
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.detail || 'Error');
+            return result;
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+        
+        function startTimer() {
+            let seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        }
+        
+        function stopTimer() {
+            clearInterval(timerInterval);
+            return Math.floor((Date.now() - startTime) / 1000);
+        }
+        
+        async function loadAssessment() {
+            const participantId = localStorage.getItem('participantId');
+            const participantName = localStorage.getItem('participantName');
+            
+            if (!participantId) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.getElementById('participantName').textContent = 
+                participantName ? `Welcome, ${participantName}!` : 'Welcome!';
+            
+            try {
+                // Check if already completed
+                const result = await apiCall(`/api/result/${participantId}`);
+                if (result.success) {
+                    showResult(result.data);
+                    return;
+                }
+            } catch (e) {
+                // Not completed yet, continue
+            }
+            
+            try {
+                const response = await apiCall('/api/questions');
+                questions = response.data;
+                answers = new Array(questions.length).fill(-1);
+                
+                // Start assessment
+                await apiCall('/api/assessments/start', 'POST', {
+                    user_id: parseInt(participantId),
+                    title: "Induction Assessment"
+                });
+                
+                renderQuestion();
+                startTimer();
+            } catch (error) {
+                document.getElementById('assessmentContainer').innerHTML = 
+                    `<div class="loading">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            
+            const html = `
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                
+                <div class="question-card">
+                    <div class="question-number">Question ${currentQuestion + 1} of ${questions.length}</div>
+                    <div class="question-text">${q.question}</div>
+                    
+                    <div class="options">
+                        ${q.options.map((opt, idx) => `
+                            <div class="option ${answers[currentQuestion] === idx ? 'selected' : ''}" 
+                                 onclick="selectOption(${idx})">
+                                <div class="option-letter">${String.fromCharCode(65 + idx)}</div>
+                                <div>${opt}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-prev" onclick="prevQuestion()" 
+                            ${currentQuestion === 0 ? 'disabled' : ''}>Previous</button>
+                    
+                    ${currentQuestion === questions.length - 1 
+                        ? `<button class="btn btn-submit" onclick="submitAssessment()">Submit Assessment</button>`
+                        : `<button class="btn btn-next" onclick="nextQuestion()">Next Question</button>`
+                    }
+                </div>
+            `;
+            
+            document.getElementById('assessmentContainer').innerHTML = html;
+        }
+        
+        function selectOption(index) {
+            answers[currentQuestion] = index;
+            renderQuestion();
+        }
+        
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+        
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+        
+        async function submitAssessment() {
+            const unanswered = answers.filter(a => a === -1).length;
+            if (unanswered > 0) {
+                if (!confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit?`)) {
+                    return;
+                }
+            }
+            
+            const timeTaken = stopTimer();
+            const participantId = localStorage.getItem('participantId');
+            
+            try {
+                const result = await apiCall('/api/assessments/submit', 'POST', {
+                    user_id: parseInt(participantId),
+                    answers: answers,
+                    time_taken: timeTaken
+                });
+                
+                showResult(result.data);
+            } catch (error) {
+                alert('Error submitting: ' + error.message);
+            }
+        }
+        
+        function showResult(data) {
+            const passed = data.status === 'pass';
+            const icon = passed ? '🎉' : '📋';
+            const title = passed ? 'Congratulations!' : 'Assessment Completed';
+            const message = passed 
+                ? 'You have successfully passed the induction assessment.' 
+                : 'Thank you for completing the assessment. You can retake if needed.';
+            
+            const html = `
+                <div class="result-card">
+                    <div class="result-icon">${icon}</div>
+                    <h1 class="result-title">${title}</h1>
+                    <div class="result-score">${data.score_percentage}%</div>
+                    <p>${data.correct_answers} out of ${data.total_questions} correct</p>
+                    <p class="result-message">${message}</p>
+                    <button class="btn btn-next" onclick="window.location.href='index.html'">
+                        Back to Home
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('assessmentContainer').innerHTML = html;
+            document.getElementById('timer').style.display = 'none';
+        }
+        
+        // Load on page load
+        loadAssessment();
+    </script>
+</body>
+</html>

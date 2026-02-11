@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Medanta Induction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 30px 20px;
+        }
+        
+        .sidebar-logo {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-logo img {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .nav-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(229, 57, 53, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-card.primary { border-left: 4px solid #e53935; }
+        .stat-card.success { border-left: 4px solid #4caf50; }
+        .stat-card.warning { border-left: 4px solid #ff9800; }
+        .stat-card.info { border-left: 4px solid #2196f3; }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 57, 53, 0.3);
+        }
+        
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+        
+        .bar {
+            width: 60px;
+            background: linear-gradient(180deg, #e53935 0%, #c62828 100%);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .bar:hover {
+            opacity: 0.8;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <img src="backend/Medanta Lucknow Logo.jpg" alt="Medanta" onerror="this.style.display='none'">
+            <h3>Admin Portal</h3>
+        </div>
+        
+        <div class="nav-item active" onclick="showSection('dashboard')">
+            <span>📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="showSection('participants')">
+            <span>👥</span> Participants
+        </div>
+        <div class="nav-item" onclick="showSection('assessments')">
+            <span>📝</span> Assessments
+        </div>
+        <div class="nav-item" onclick="showSection('questions')">
+            <span>❓</span> Questions
+        </div>
+        <div class="nav-item" onclick="window.location.href='index.html'">
+            <span>🚪</span> Logout
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+            <div class="header">
+                <h1>Dashboard Overview</h1>
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-label">Total Participants</div>
+                    <div class="stat-value" id="statTotal">0</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Passed</div>
+                    <div class="stat-value" id="statPass">0</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">Failed</div>
+                    <div class="stat-value" id="statFail">0</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="statAvg">0%</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Department-wise Completion</h3>
+                </div>
+                <div class="chart-container" id="deptChart">
+                    <p>Loading chart...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Participants Section -->
+        <div id="participantsSection" style="display:none">
+            <div class="header">
+                <h1>All Participants</h1>
+            </div>
+            <div class="card">
+                <table id="participantsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Assessments Section -->
+        <div id="assessmentsSection" style="display:none">
+            <div class="header">
+                <h1>Assessment Results</h1>
+            </div>
+            <div class="card">
+                <table id="assessmentsTable">
+                    <thead>
+                        <tr>
+                            <th>Participant</th>
+                            <th>Department</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Time Taken</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Questions Section -->
+        <div id="questionsSection" style="display:none">
+            <div class="header">
+                <h1>Manage Questions</h1>
+                <button class="btn btn-primary" onclick="alert('Add question feature coming soon!')">+ Add Question</button>
+            </div>
+            <div class="card" id="questionsList">
+                <p>Loading questions...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (data) options.body = JSON.stringify(data);
+            
+            const response = await fetch(`${API_URL}${endpoint}`, options);
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.detail || 'Error');
+            return result;
+        }
+        
+        function showSection(section) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('participantsSection').style.display = 'none';
+            document.getElementById('assessmentsSection').style.display = 'none';
+            document.getElementById('questionsSection').style.display = 'none';
+            
+            document.getElementById(section + 'Section').style.display = 'block';
+            
+            if (section === 'participants') loadParticipants();
+            if (section === 'assessments') loadAssessments();
+            if (section === 'questions') loadQuestions();
+        }
+        
+        async function loadDashboard() {
+            try {
+                const stats = await apiCall('/api/admin/stats');
+                const data = stats.data;
+                
+                document.getElementById('statTotal').textContent = data.total_participants;
+                document.getElementById('statPass').textContent = data.pass_count;
+                document.getElementById('statFail').textContent = data.fail_count;
+                document.getElementById('statAvg').textContent = data.average_score + '%';
+                
+                // Render department chart
+                const chartContainer = document.getElementById('deptChart');
+                const depts = Object.entries(data.department_wise);
+                
+                if (depts.length === 0) {
+                    chartContainer.innerHTML = '<p>No data available</p>';
+                    return;
+                }
+                
+                const maxVal = Math.max(...depts.map(d => d[1].total));
+                
+                chartContainer.innerHTML = depts.map(([name, vals]) => `
+                    <div class="bar" style="height: ${(vals.total / maxVal * 250)}px">
+                        <div class="bar-value">${vals.completed}/${vals.total}</div>
+                        <div class="bar-label">${name}</div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        async function loadParticipants() {
+            try {
+                const result = await apiCall('/api/participants');
+                const tbody = document.querySelector('#participantsTable tbody');
+                
+                tbody.innerHTML = result.data.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>${p.email}</td>
+                        <td>${p.department}</td>
+                        <td>${p.role}</td>
+                        <td><span class="badge badge-${p.status === 'completed' ? 'pass' : 'pending'}">${p.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading participants:', error);
+            }
+        }
+        
+        async function loadAssessments() {
+            try {
+                const result = await apiCall('/api/admin/assessments');
+                const tbody = document.querySelector('#assessmentsTable tbody');
+                
+                tbody.innerHTML = result.data.map(a => `
+                    <tr>
+                        <td>${a.participant_name}</td>
+                        <td>${a.department}</td>
+                        <td>${Math.round(a.score)}%</td>
+                        <td><span class="badge badge-${a.score >= 70 ? 'pass' : 'fail'}">${a.score >= 70 ? 'Pass' : 'Fail'}</span></td>
+                        <td>${Math.floor(a.time_taken / 60)}m ${a.time_taken % 60}s</td>
+                        <td>${new Date(a.completed_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading assessments:', error);
+            }
+        }
+        
+        async function loadQuestions() {
+            try {
+                const result = await apiCall('/api/questions');
+                const container = document.getElementById('questionsList');
+                
+                container.innerHTML = result.data.map((q, idx) => `
+                    <div style="padding: 20px; border-bottom: 1px solid #eee;">
+                        <p><strong>Q${idx + 1}:</strong> ${q.question}</p>
+                        <p style="color: #666; margin-top: 10px;">
+                            Options: ${q.options.join(', ')} | Category: ${q.category} | Marks: ${q.marks}
+                        </p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
+        }
+        
+        function refreshData() {
+            loadDashboard();
+        }
+        
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+</html>
