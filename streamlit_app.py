@@ -14,27 +14,49 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to match your HTML design
+# Custom CSS - EXACT match to your HTML
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap');
     
-    .main {
-        font-family: 'Segoe UI', sans-serif;
+    /* Remove default Streamlit padding */
+    .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
     }
     
+    /* Hide Streamlit header */
+    header {
+        visibility: hidden;
+    }
+    
+    /* Hide Streamlit footer */
+    footer {
+        visibility: hidden;
+    }
+    
+    /* Main background - gradient like your HTML */
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
+    /* Remove default background */
+    .main {
+        background: transparent !important;
+    }
+    
+    /* Container - white box with shadow */
     .main-container {
         background: white;
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        padding: 0;
         overflow: hidden;
+        max-width: 1000px;
+        margin: 40px auto;
     }
     
+    /* Left panel - red gradient */
     .left-panel {
         background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
         padding: 40px;
@@ -45,11 +67,6 @@ st.markdown("""
         flex-direction: column;
         justify-content: center;
         align-items: center;
-    }
-    
-    .right-panel {
-        padding: 40px;
-        background: white;
     }
     
     .logo-circle {
@@ -68,17 +85,27 @@ st.markdown("""
         font-size: 2.5em;
         font-weight: bold;
         margin-bottom: 15px;
+        color: white;
     }
     
     .welcome-text {
         font-size: 1.1em;
         opacity: 0.9;
         line-height: 1.6;
+        color: white;
     }
     
+    /* Right panel - white background */
+    .right-panel {
+        padding: 40px;
+        background: white;
+    }
+    
+    /* Tabs styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0;
         border-bottom: 2px solid #eee;
+        margin-bottom: 30px;
     }
     
     .stTabs [data-baseweb="tab"] {
@@ -89,13 +116,16 @@ st.markdown("""
         color: #666;
         background: transparent;
         border: none;
+        font-size: 16px;
     }
     
     .stTabs [aria-selected="true"] {
         color: #e53935 !important;
         border-bottom: 3px solid #e53935 !important;
+        background: transparent !important;
     }
     
+    /* Form inputs */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         width: 100%;
@@ -103,14 +133,25 @@ st.markdown("""
         border: 2px solid #e0e0e0;
         border-radius: 10px;
         font-size: 16px;
+        background: white;
     }
     
     .stTextInput > div > div > input:focus,
     .stSelectbox > div > div > select:focus {
         border-color: #e53935;
         box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.2);
+        outline: none;
     }
     
+    /* Labels */
+    .stTextInput label,
+    .stSelectbox label {
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    /* Button styling */
     .stButton > button {
         width: 100%;
         padding: 15px;
@@ -122,6 +163,7 @@ st.markdown("""
         font-weight: 600 !important;
         cursor: pointer;
         transition: transform 0.3s, box-shadow 0.3s;
+        margin-top: 10px;
     }
     
     .stButton > button:hover {
@@ -129,6 +171,13 @@ st.markdown("""
         box-shadow: 0 10px 20px rgba(229, 57, 53, 0.3);
     }
     
+    .stButton > button:disabled {
+        background: #ccc !important;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    /* Admin link */
     .admin-link {
         text-align: center;
         margin-top: 20px;
@@ -140,6 +189,18 @@ st.markdown("""
         font-weight: 500;
     }
     
+    /* Form container spacing */
+    .element-container {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Reduce gap between form elements */
+    .row-widget.stTextInput,
+    .row-widget.stSelectbox {
+        margin-bottom: 20px !important;
+    }
+    
+    /* Assessment styling */
     .question-card {
         background: white;
         border-radius: 20px;
@@ -156,29 +217,6 @@ st.markdown("""
         padding: 10px 20px;
         border-radius: 10px;
         text-align: center;
-    }
-    
-    .option-button {
-        width: 100%;
-        padding: 20px;
-        border: 2px solid #e0e0e0;
-        border-radius: 15px;
-        margin-bottom: 15px;
-        text-align: left;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .option-button:hover {
-        border-color: #e53935;
-        background: #fff5f5;
-    }
-    
-    .option-button.selected {
-        border-color: #e53935;
-        background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
-        color: white;
     }
     
     .progress-bar {
@@ -203,20 +241,24 @@ st.markdown("""
         box-shadow: 0 10px 40px rgba(0,0,0,0.1);
     }
     
-    .stats-card {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border-left: 4px solid #e53935;
-    }
-    
+    /* Sidebar for admin */
     div[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     }
     
     div[data-testid="stSidebar"] .stMarkdown {
         color: white;
+    }
+    
+    /* Remove extra padding */
+    .css-1d391kg {
+        padding: 0 !important;
+    }
+    
+    /* Center content */
+    .css-1y4p8pa {
+        max-width: 100% !important;
+        padding: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -277,18 +319,14 @@ def import_questions_from_csv():
     try:
         df = pd.read_csv(csv_path)
         
-        # Check required columns
         required_cols = ['Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Answer']
         missing_cols = [col for col in required_cols if col not in df.columns]
         
         if missing_cols:
-            st.warning(f"CSV missing columns: {missing_cols}")
             return False
         
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        
-        # Clear existing questions
         c.execute("DELETE FROM questions")
         
         imported = 0
@@ -303,13 +341,10 @@ def import_questions_from_csv():
             opt_d = str(row.get('Option D', '')).strip()
             answer = str(row.get('Answer', 'A')).strip().upper()
             
-            # Convert answer to index (A=0, B=1, C=2, D=3)
             ans_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
             correct_idx = ans_map.get(answer, 0)
             
             options = json.dumps([opt_a, opt_b, opt_c, opt_d])
-            
-            # Get topic if exists, else default
             topic = str(row.get('Topic', row.get('Category', 'General'))).strip()
             if not topic or topic == 'nan':
                 topic = 'General'
@@ -322,11 +357,9 @@ def import_questions_from_csv():
         
         conn.commit()
         conn.close()
-        
         return imported > 0
         
     except Exception as e:
-        st.error(f"Error importing CSV: {e}")
         return False
 
 def add_sample_questions():
@@ -359,7 +392,6 @@ def add_sample_questions():
         conn.commit()
     
     conn.close()
-    return count
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -394,30 +426,45 @@ if 'questions' not in st.session_state:
 
 # ==================== HOME PAGE (REGISTRATION) ====================
 def show_home():
+    # Create two columns with exact same ratio as HTML
     col1, col2 = st.columns([1, 1])
     
     with col1:
+        # Left panel with red gradient
         st.markdown("""
-        <div class="left-panel">
-            <div class="logo-circle">
-                <h1 style="color: #e53935; font-size: 60px;">🏥</h1>
+        <div style="background: linear-gradient(135deg, #e53935 0%, #c62828 100%); 
+                    padding: 40px; color: white; text-align: center; 
+                    min-height: 600px; display: flex; flex-direction: column; 
+                    justify-content: center; align-items: center; border-radius: 0;">
+            <div style="width: 120px; height: 120px; background: white; 
+                        border-radius: 50%; display: flex; align-items: center; 
+                        justify-content: center; margin-bottom: 30px; 
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <h1 style="color: #e53935; font-size: 60px; margin: 0;">🏥</h1>
             </div>
-            <div class="welcome-title">Welcome to Medanta</div>
-            <div class="welcome-text">
-                Begin your journey with us. Complete your induction to become part of our family dedicated to delivering exceptional healthcare.
-            </div>
+            <h1 style="font-size: 2.5em; font-weight: bold; margin-bottom: 15px; color: white;">
+                Welcome to Medanta
+            </h1>
+            <p style="font-size: 1.1em; opacity: 0.9; line-height: 1.6; color: white;">
+                Begin your journey with us. Complete your induction to become part 
+                of our family dedicated to delivering exceptional healthcare.
+            </p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="right-panel">', unsafe_allow_html=True)
+        # Right panel with white background
+        st.markdown("""
+        <div style="background: white; padding: 40px; min-height: 600px;">
+        """, unsafe_allow_html=True)
         
+        # Tabs
         tab1, tab2 = st.tabs(["New Registration", "Continue Assessment"])
         
         with tab1:
-            st.markdown("### New Registration")
+            st.markdown("<h3 style='color: #333; margin-bottom: 20px;'>New Registration</h3>", unsafe_allow_html=True)
             
-            with st.form("registration_form"):
+            with st.form("registration_form", clear_on_submit=False):
                 name = st.text_input("Full Name *", placeholder="Enter your full name")
                 email = st.text_input("Email Address *", placeholder="your.email@medanta.org")
                 department = st.selectbox("Department *", 
@@ -433,8 +480,6 @@ def show_home():
                     else:
                         conn = get_db()
                         c = conn.cursor()
-                        
-                        # Check if email exists
                         c.execute("SELECT id FROM users WHERE email = ?", (email,))
                         if c.fetchone():
                             st.error("Email already registered. Use 'Continue Assessment' tab.")
@@ -454,9 +499,10 @@ def show_home():
                             st.session_state.answers = []
                             st.session_state.start_time = time.time()
                             st.rerun()
+                        conn.close()
         
         with tab2:
-            st.markdown("### Continue Assessment")
+            st.markdown("<h3 style='color: #333; margin-bottom: 20px;'>Continue Assessment</h3>", unsafe_allow_html=True)
             
             login_email = st.text_input("Email Address", key="login_email", placeholder="Enter your registered email")
             
@@ -465,15 +511,10 @@ def show_home():
                 c = conn.cursor()
                 c.execute("SELECT * FROM users WHERE email = ?", (login_email,))
                 user = c.fetchone()
-                conn.close()
                 
                 if user:
                     st.session_state.user_id = user['id']
                     st.session_state.user_name = user['name']
-                    
-                    # Check if already completed
-                    conn = get_db()
-                    c = conn.cursor()
                     c.execute("SELECT * FROM assessments WHERE user_id = ? AND status = 'completed'", (user['id'],))
                     completed = c.fetchone()
                     conn.close()
@@ -489,9 +530,10 @@ def show_home():
                     st.rerun()
                 else:
                     st.error("Email not found. Please register first.")
+                conn.close()
             
-            st.markdown("---")
-            st.markdown("Or enter your Participant ID:")
+            st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #666; text-align: center;'>Or enter your Participant ID:</p>", unsafe_allow_html=True)
             login_id = st.text_input("Participant ID", key="login_id")
             
             if st.button("Continue with ID"):
@@ -517,13 +559,15 @@ def show_home():
                     except:
                         st.error("Invalid ID")
         
+        # Admin link
         st.markdown("""
-        <div class="admin-link">
-            <a href="?page=admin" target="_self">🔐 Administrator Portal</a>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="?page=admin" style="color: #e53935; text-decoration: none; font-weight: 500;">
+                🔐 Administrator Portal
+            </a>
+        </div>
         </div>
         """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # ==================== ASSESSMENT PAGE ====================
 def show_assessment():
@@ -544,20 +588,25 @@ def show_assessment():
     # Header
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown(f"### Welcome, {st.session_state.user_name}!")
+        st.markdown(f"<h3>Welcome, {st.session_state.user_name}!</h3>", unsafe_allow_html=True)
     with col2:
         elapsed = int(time.time() - st.session_state.start_time)
         mins = elapsed // 60
         secs = elapsed % 60
-        st.markdown(f'<div class="timer">{mins:02d}:{secs:02d}</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style="font-size: 24px; font-weight: bold; background: rgba(229, 57, 53, 0.1); 
+                        color: #e53935; padding: 10px 20px; border-radius: 10px; text-align: center;">
+                {mins:02d}:{secs:02d}
+            </div>
+        """, unsafe_allow_html=True)
     
     # Progress bar
     progress = (current + 1) / len(questions) * 100
     st.markdown(f"""
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {progress}%"></div>
+        <div style="height: 10px; background: #e0e0e0; border-radius: 5px; margin-bottom: 10px; overflow: hidden;">
+            <div style="height: 100%; width: {progress}%; background: linear-gradient(90deg, #e53935, #ff6b6b);"></div>
         </div>
-        <p style="text-align: center; color: #e53935; font-weight: 600;">
+        <p style="text-align: center; color: #e53935; font-weight: 600; margin-bottom: 30px;">
             Question {current + 1} of {len(questions)}
         </p>
     """, unsafe_allow_html=True)
@@ -565,7 +614,8 @@ def show_assessment():
     # Question card
     q = questions[current]
     st.markdown(f"""
-        <div class="question-card">
+        <div style="background: white; border-radius: 20px; padding: 40px; 
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-bottom: 30px;">
             <h3 style="margin-bottom: 30px; color: #333;">{q['question']}</h3>
         </div>
     """, unsafe_allow_html=True)
@@ -573,14 +623,10 @@ def show_assessment():
     # Options
     options = json.loads(q['options'])
     for i, opt in enumerate(options):
-        col1, col2 = st.columns([1, 10])
-        with col1:
-            st.markdown(f'<div style="font-size: 24px; font-weight: bold; color: #e53935;">{chr(65+i)}</div>', unsafe_allow_html=True)
-        with col2:
-            if st.button(opt, key=f"opt_{i}", use_container_width=True):
-                st.session_state.answers.append(i)
-                st.session_state.current_question += 1
-                st.rerun()
+        if st.button(f"{chr(65+i)}. {opt}", key=f"opt_{i}", use_container_width=True):
+            st.session_state.answers.append(i)
+            st.session_state.current_question += 1
+            st.rerun()
     
     # Navigation
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -592,7 +638,7 @@ def show_assessment():
                 st.rerun()
     with col3:
         if st.button("Skip →"):
-            st.session_state.answers.append(-1)  # Skipped
+            st.session_state.answers.append(-1)
             st.session_state.current_question += 1
             st.rerun()
 
@@ -601,7 +647,6 @@ def submit_assessment():
     answers = st.session_state.answers
     time_taken = int(time.time() - st.session_state.start_time)
     
-    # Calculate score
     correct = 0
     for i, ans in enumerate(answers):
         if i < len(questions) and ans == questions[i]['correct_answer']:
@@ -610,14 +655,11 @@ def submit_assessment():
     total = len(questions)
     score = (correct / total * 100) if total > 0 else 0
     
-    # Save to database
     conn = get_db()
     c = conn.cursor()
     c.execute("""INSERT INTO assessments (user_id, title, score, total_questions, correct_answers, status, time_taken, completed_at, answers)
                  VALUES (?, ?, ?, ?, ?, 'completed', ?, datetime('now'), ?)""",
         (st.session_state.user_id, "Induction Assessment", score, total, correct, time_taken, json.dumps(answers)))
-    
-    # Update user status
     c.execute("UPDATE users SET status = 'completed', completion_percentage = ? WHERE id = ?",
         (score, st.session_state.user_id))
     conn.commit()
@@ -642,7 +684,8 @@ def show_result():
     passed = result['score'] >= 70
     
     st.markdown(f"""
-        <div class="result-card">
+        <div style="background: white; border-radius: 20px; padding: 60px; 
+                    text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
             <div style="font-size: 80px; margin-bottom: 20px;">{'🎉' if passed else '📋'}</div>
             <h1 style="font-size: 32px; margin-bottom: 20px; color: #333;">
                 {'Congratulations!' if passed else 'Assessment Completed'}
@@ -654,7 +697,7 @@ def show_result():
                 {result['correct_answers']} out of {result['total_questions']} correct
             </p>
             <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
-                {'You have successfully passed the induction assessment.' if passed else 'Thank you for completing the assessment.'}
+                {'You have successfully passed!' if passed else 'Thank you for completing.'}
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -667,22 +710,20 @@ def show_result():
 
 # ==================== ADMIN PAGE ====================
 def show_admin():
-    # Simple password protection
     if 'admin_authenticated' not in st.session_state:
         st.session_state.admin_authenticated = False
     
     if not st.session_state.admin_authenticated:
-        st.markdown("### 🔐 Administrator Login")
+        st.markdown("<h3>🔐 Administrator Login</h3>", unsafe_allow_html=True)
         password = st.text_input("Password", type="password")
         if st.button("Login"):
-            if password == "medanta123":  # Change this password!
+            if password == "medanta123":
                 st.session_state.admin_authenticated = True
                 st.rerun()
             else:
                 st.error("Incorrect password")
         return
     
-    # Admin dashboard
     st.sidebar.title("🏥 Admin Portal")
     admin_page = st.sidebar.radio("Navigation", ["Dashboard", "Participants", "Results", "Questions", "Import CSV", "Logout"])
     
@@ -692,23 +733,17 @@ def show_admin():
         st.rerun()
     
     elif admin_page == "Dashboard":
-        st.title("📊 Dashboard Overview")
-        
+        st.title("📊 Dashboard")
         conn = get_db()
         c = conn.cursor()
-        
         c.execute("SELECT COUNT(*) FROM users")
         total = c.fetchone()[0]
-        
         c.execute("SELECT COUNT(*) FROM assessments WHERE status = 'completed'")
         completed = c.fetchone()[0]
-        
         c.execute("SELECT AVG(score) FROM assessments WHERE status = 'completed'")
         avg_score = c.fetchone()[0] or 0
-        
         c.execute("SELECT COUNT(*) FROM questions")
         total_q = c.fetchone()[0]
-        
         conn.close()
         
         col1, col2, col3, col4 = st.columns(4)
@@ -730,11 +765,9 @@ def show_admin():
             st.dataframe(df, use_container_width=True)
             csv = df.to_csv(index=False)
             st.download_button("Download CSV", csv, "participants.csv", "text/csv")
-        else:
-            st.info("No participants yet")
     
     elif admin_page == "Results":
-        st.title("📝 Assessment Results")
+        st.title("📝 Results")
         conn = get_db()
         c = conn.cursor()
         c.execute("""SELECT a.*, u.name, u.email, u.department 
@@ -748,8 +781,6 @@ def show_admin():
             st.dataframe(df, use_container_width=True)
             csv = df.to_csv(index=False)
             st.download_button("Download CSV", csv, "results.csv", "text/csv")
-        else:
-            st.info("No results yet")
     
     elif admin_page == "Questions":
         st.title("❓ Questions")
@@ -759,7 +790,7 @@ def show_admin():
         questions = c.fetchall()
         conn.close()
         
-        st.info(f"Total questions in database: {len(questions)}")
+        st.info(f"Total questions: {len(questions)}")
         
         for q in questions:
             with st.expander(f"{q['category']}: {q['question'][:60]}..."):
@@ -772,15 +803,6 @@ def show_admin():
     
     elif admin_page == "Import CSV":
         st.title("📁 Import Questions from CSV")
-        
-        st.markdown("""
-        Upload a CSV file with columns:
-        - Question
-        - Option A, Option B, Option C, Option D
-        - Answer (A/B/C/D)
-        - Topic/Category (optional)
-        """)
-        
         uploaded_file = st.file_uploader("Choose CSV file", type="csv")
         
         if uploaded_file is not None:
@@ -789,14 +811,11 @@ def show_admin():
                 st.write("Preview:", df.head())
                 
                 if st.button("Import to Database"):
-                    # Save temporarily
                     df.to_csv("questions.csv", index=False)
-                    
-                    # Import
                     imported = import_questions_from_csv()
                     
                     if imported:
-                        st.success("✅ Questions imported successfully!")
+                        st.success("✅ Questions imported!")
                         st.balloons()
                     else:
                         st.error("❌ Failed to import")
@@ -805,13 +824,11 @@ def show_admin():
 
 # ==================== MAIN ROUTING ====================
 def main():
-    # Check URL parameters for admin access
     query_params = st.query_params
     if query_params.get("page") == "admin":
         show_admin()
         return
     
-    # Route to appropriate page
     if st.session_state.page == 'home':
         show_home()
     elif st.session_state.page == 'assessment':
