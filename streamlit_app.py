@@ -18,7 +18,25 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS with powder blue background
+# Function to load and encode logo
+def get_logo_base64():
+    try:
+        # Try local file first
+        logo_path = "Medanta Lucknow Logo.jpg"
+        if os.path.exists(logo_path):
+            with open(logo_path, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+        
+        # Try GitHub raw URL
+        github_url = "https://raw.githubusercontent.com/pspallavisingh349-ai/medanta-induction/main/Medanta%20Lucknow%20Logo.jpg"
+        response = requests.get(github_url, timeout=10)
+        if response.status_code == 200:
+            return base64.b64encode(response.content).decode()
+    except Exception as e:
+        st.error(f"Logo load error: {e}")
+    return None
+
+# CSS with powder blue background and logo styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
@@ -91,10 +109,30 @@ st.markdown("""
         text-align: center;
     }
     
-    /* Logo styling */
-    .logo-circle {
-        width: 120px;
-        height: 120px;
+    /* LOGO STYLING */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .logo-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        animation: pulse-logo 2s infinite;
+        border: 5px solid white;
+    }
+    
+    @keyframes pulse-logo {
+        0%, 100% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        50% { transform: scale(1.05); box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+    }
+    
+    .logo-fallback {
+        width: 150px;
+        height: 150px;
         margin: 0 auto 30px;
         background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
         border-radius: 50%;
@@ -103,6 +141,7 @@ st.markdown("""
         justify-content: center;
         box-shadow: 0 20px 40px rgba(25,118,210,0.3);
         animation: pulse-blue 2s infinite;
+        border: 5px solid white;
     }
     
     @keyframes pulse-blue {
@@ -111,7 +150,7 @@ st.markdown("""
     }
     
     .logo-icon {
-        font-size: 60px;
+        font-size: 80px;
     }
     
     /* Animated title - BLUE theme */
@@ -193,12 +232,12 @@ st.markdown("""
         z-index: 1;
     }
     
-    /* Top Navigation - WHITE */
+    /* Top Navigation - WHITE with LOGO */
     .top-nav {
         background: rgba(255,255,255,0.95);
         backdrop-filter: blur(20px);
         border-radius: 20px;
-        padding: 20px 25px;
+        padding: 15px 25px;
         margin-bottom: 30px;
         display: flex;
         justify-content: space-between;
@@ -206,10 +245,18 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
     
-    .nav-logo {
+    .nav-logo-section {
         display: flex;
         align-items: center;
         gap: 15px;
+    }
+    
+    .nav-logo-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #1976d2;
     }
     
     .nav-logo-text {
@@ -515,6 +562,8 @@ st.markdown("""
         .dashboard-grid { grid-template-columns: 1fr; }
         .hero-title { font-size: 1.8em; }
         .topic-grid { grid-template-columns: 1fr; }
+        .logo-img, .logo-fallback { width: 120px; height: 120px; }
+        .nav-logo-img { width: 50px; height: 50px; }
     }
 </style>
 
@@ -531,6 +580,9 @@ st.markdown("""
     <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
 </div>
 """, unsafe_allow_html=True)
+
+# Load logo
+logo_base64 = get_logo_base64()
 
 # Database setup
 DB_PATH = "medanta.db"
@@ -635,7 +687,7 @@ def get_db():
     return conn
 
 def get_stats():
-    """FIXED: Get dashboard statistics"""
+    """Get dashboard statistics"""
     try:
         conn = get_db()
         c = conn.cursor()
@@ -683,16 +735,6 @@ def get_topic_stats(user_id, topic):
     result = c.fetchone()
     conn.close()
     return dict(result) if result else None
-
-def get_all_attempts(user_id, topic):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("""SELECT * FROM assessments 
-                 WHERE user_id = ? AND topic = ? 
-                 ORDER BY attempt_number ASC""", (user_id, topic))
-    results = [dict(row) for row in c.fetchall()]
-    conn.close()
-    return results
 
 def get_user_report_card(user_id):
     conn = get_db()
@@ -743,13 +785,25 @@ if 'attempt_number' not in st.session_state:
 def show_login():
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
-    st.markdown("""
-        <div class="login-card">
-            <div class="logo-circle">
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    
+    # LOGO DISPLAY
+    if logo_base64:
+        st.markdown(f"""
+            <div class="logo-container">
+                <img src="data:image/jpeg;base64,{logo_base64}" class="logo-img" alt="Medanta Logo">
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div class="logo-fallback">
                 <span class="logo-icon">🏥</span>
             </div>
-            <h1 class="animated-title">Namaste! 🙏</h1>
-            <p class="login-subtitle">Welcome to Medanta Induction Portal</p>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("""
+        <h1 class="animated-title">Namaste! 🙏</h1>
+        <p class="login-subtitle">Welcome to Medanta Induction Portal</p>
     """, unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["✨ New Joiner", "🔑 Returning User"])
@@ -837,7 +891,6 @@ def show_dashboard():
         st.rerun()
         return
     
-    # FIXED: Get stats with error handling
     try:
         total_users, completed, avg_score, total_q = get_stats()
     except:
@@ -845,15 +898,24 @@ def show_dashboard():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    # Top Navigation
-    col1, col2, col3 = st.columns([1, 3, 1])
+    # Top Navigation with LOGO
+    col1, col2, col3 = st.columns([2, 3, 1])
     with col1:
-        st.markdown("""
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 35px;">🏥</span>
-                <span style="color: #1565c0; font-weight: 700; font-size: 1.3em;">Medanta</span>
-            </div>
-        """, unsafe_allow_html=True)
+        # Logo in nav
+        if logo_base64:
+            st.markdown(f"""
+                <div class="nav-logo-section">
+                    <img src="data:image/jpeg;base64,{logo_base64}" class="nav-logo-img" alt="Medanta Logo">
+                    <span class="nav-logo-text">Medanta</span>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+                <div class="nav-logo-section">
+                    <span style="font-size: 40px;">🏥</span>
+                    <span class="nav-logo-text">Medanta</span>
+                </div>
+            """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
             <div style="text-align: center; color: #546e7a;">
@@ -997,9 +1059,15 @@ def show_handbook():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    if st.button("← Back to Dashboard", key="back_dash"):
-        st.session_state.page = 'dashboard'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Back to Dashboard", key="back_dash"):
+            st.session_state.page = 'dashboard'
+            st.rerun()
     
     st.markdown("""
         <div class="hero-section">
@@ -1049,9 +1117,15 @@ def show_topics():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    if st.button("← Back to Dashboard", key="back_dash"):
-        st.session_state.page = 'dashboard'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Back to Dashboard", key="back_dash"):
+            st.session_state.page = 'dashboard'
+            st.rerun()
     
     st.markdown("""
         <div class="hero-section">
@@ -1137,10 +1211,15 @@ def show_assessment():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    # Header
-    if st.button("← Exit Assessment", key="exit_assessment"):
-        st.session_state.page = 'topics'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Exit Assessment", key="exit_assessment"):
+            st.session_state.page = 'topics'
+            st.rerun()
     
     st.markdown(f"""
         <div class="progress-container">
@@ -1257,6 +1336,14 @@ def show_result():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        st.write("")  # Empty for alignment
+    
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         st.markdown(f"""
@@ -1317,9 +1404,15 @@ def show_journey():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    if st.button("← Back to Dashboard"):
-        st.session_state.page = 'dashboard'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Back to Dashboard"):
+            st.session_state.page = 'dashboard'
+            st.rerun()
     
     st.markdown("""
         <div class="hero-section">
@@ -1459,9 +1552,15 @@ def show_contacts():
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
-    if st.button("← Back to Dashboard"):
-        st.session_state.page = 'dashboard'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Back to Dashboard"):
+            st.session_state.page = 'dashboard'
+            st.rerun()
     
     st.markdown("""
         <div class="hero-section">
@@ -1509,9 +1608,15 @@ def show_contacts():
 def show_admin_login():
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
-    if st.button("← Back to Login"):
-        st.session_state.page = 'login'
-        st.rerun()
+    # Header with logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if logo_base64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #1976d2;">', unsafe_allow_html=True)
+    with col2:
+        if st.button("← Back to Login"):
+            st.session_state.page = 'login'
+            st.rerun()
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -1558,6 +1663,10 @@ def show_admin_dashboard():
         st.rerun()
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
+    
+    # Header with logo
+    if logo_base64:
+        st.markdown(f'<img src="data:image/jpeg;base64,{logo_base64}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #1976d2; margin-bottom: 20px;">', unsafe_allow_html=True)
     
     if admin_page == "📊 Dashboard":
         st.title("Admin Dashboard")
