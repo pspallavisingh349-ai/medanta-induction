@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS
+# CSS - Clean, no animations
 st.markdown("""
 <style>
     .stApp {
@@ -29,6 +29,16 @@ st.markdown("""
         margin-bottom: 30px;
     }
     
+    .logo-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        padding: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
     .portal-btn {
         background: white;
         padding: 30px;
@@ -37,11 +47,11 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         margin: 10px 0;
         cursor: pointer;
-        transition: transform 0.3s;
+        transition: transform 0.2s;
     }
     
     .portal-btn:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     }
     
@@ -51,6 +61,7 @@ st.markdown("""
         border-radius: 15px;
         margin: 10px 0;
         border-left: 4px solid #e53e3e;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     
     .contact-box.it {border-left-color: #3182ce;}
@@ -73,6 +84,7 @@ st.markdown("""
     @media (max-width: 768px) {
         .header-box {padding: 20px;}
         h1 {font-size: 1.5em !important;}
+        .logo-img {width: 80px; height: 80px;}
     }
 </style>
 """, unsafe_allow_html=True)
@@ -127,10 +139,13 @@ def calc_score(answers):
     questions = load_questions()
     return sum(1 for q in questions if answers.get(str(q['id'])) == q['correct'])
 
-# Header
+# Header with Logo - STATIC (no animation)
 st.markdown("""
 <div class="header-box">
-    <h1>🏥 Namaste! 🙏</h1>
+    <img src="https://www.medanta.org/images/medanta-logo.png" 
+         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSI1MCIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2N2VlYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TWVkYW50YTwvdGV4dD48L3N2Zz4='"
+         class="logo-img" alt="Medanta Logo">
+    <h1>Namaste! 🙏</h1>
     <h3>Welcome to Medanta Induction Portal</h3>
 </div>
 """, unsafe_allow_html=True)
