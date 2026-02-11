@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import os
 from datetime import datetime
-import hashlib
+import base64
 
 # Page config
 st.set_page_config(
@@ -13,23 +13,61 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Function to load and encode logo
+def get_logo_base64():
+    try:
+        with open("Medanta Lucknow Logo.jpg", "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except:
+        return None
+
+# Load questions from CSV
+def load_questions():
+    try:
+        df = pd.read_csv("questions.csv")
+        questions = []
+        for _, row in df.iterrows():
+            questions.append({
+                "id": row['id'],
+                "question": row['question'],
+                "options": [row['option1'], row['option2'], row['option3'], row['option4']],
+                "correct": int(row['correct'])
+            })
+        return questions
+    except:
+        # Fallback questions if CSV not found
+        return [
+            {"id": 1, "question": "What is Medanta's primary mission?", 
+             "options": ["Profit", "Patient care", "Research", "Expansion"], "correct": 1},
+            {"id": 2, "question": "What does 'Samvaad' mean?", 
+             "options": ["Procedure", "Communication", "Billing", "Discharge"], "correct": 1},
+            {"id": 3, "question": "Patient safety is?", 
+             "options": ["Optional", "Everyone's duty", "Doctor only", "Nurse only"], "correct": 1}
+        ]
+
+# Get logo
+logo_base64 = get_logo_base64()
+if logo_base64:
+    logo_src = f"data:image/jpeg;base64,{logo_base64}"
+else:
+    logo_src = "https://www.medanta.org/images/medanta-logo.png"
+
 # CSS - Powder Blue Theme
-st.markdown("""
+st.markdown(f"""
 <style>
-    .stApp {
+    .stApp {{
         background: linear-gradient(135deg, #B8E3FF 0%, #E0F2FE 50%, #DBEAFE 100%);
         min-height: 100vh;
-    }
+    }}
     
-    #MainMenu, footer, header {visibility: hidden;}
+    #MainMenu, footer, header {{visibility: hidden;}}
     
-    .hero-section {
+    .hero-section {{
         text-align: center;
         padding: 30px 20px;
-        color: #1e3a5f;
-    }
+    }}
     
-    .logo-container {
+    .logo-container {{
         width: 140px;
         height: 140px;
         margin: 0 auto 20px auto;
@@ -42,53 +80,51 @@ st.markdown("""
         border: 5px solid white;
         overflow: hidden;
         animation: pulse 2s infinite;
-    }
+    }}
     
-    .logo-img {
+    .logo-img {{
         width: 130px;
         height: 130px;
         object-fit: contain;
-    }
+    }}
     
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
-        50% { transform: scale(1.03); box-shadow: 0 15px 50px rgba(0,0,0,0.2); }
-    }
+    @keyframes pulse {{
+        0%, 100% {{ transform: scale(1); }}
+        50% {{ transform: scale(1.03); }}
+    }}
     
-    .namaste-text {
+    .namaste-text {{
         font-size: 3.5em;
         font-weight: 700;
         margin: 0;
         color: #1e3a5f;
         animation: slideInDown 1s ease-out, float 3s ease-in-out infinite;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
+    }}
     
-    .welcome-text {
+    .welcome-text {{
         font-size: 1.8em;
         font-weight: 400;
         margin: 10px 0 30px 0;
         color: #3b5998;
         animation: slideInUp 1s ease-out 0.5s both;
-    }
+    }}
     
-    @keyframes slideInDown {
-        from { opacity: 0; transform: translateY(-50px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes slideInDown {{
+        from {{ opacity: 0; transform: translateY(-50px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
     
-    @keyframes slideInUp {
-        from { opacity: 0; transform: translateY(50px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes slideInUp {{
+        from {{ opacity: 0; transform: translateY(50px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
     
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-    }
+    @keyframes float {{
+        0%, 100% {{ transform: translateY(0); }}
+        50% {{ transform: translateY(-8px); }}
+    }}
     
-    /* Powder Blue Cards - NO WHITE */
-    .powder-card {
+    .powder-card {{
         background: linear-gradient(135deg, #E0F2FE 0%, #BFDBFE 100%);
         border-radius: 20px;
         padding: 40px;
@@ -96,9 +132,9 @@ st.markdown("""
         max-width: 600px;
         box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
         border: 2px solid rgba(255,255,255,0.5);
-    }
+    }}
     
-    .portal-btn {
+    .portal-btn {{
         background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         color: white;
         border: none;
@@ -111,18 +147,18 @@ st.markdown("""
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-    }
+    }}
     
-    .portal-btn:hover {
+    .portal-btn:hover {{
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-    }
+    }}
     
-    .portal-btn.admin {
+    .portal-btn.admin {{
         background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
-    }
+    }}
     
-    .journey-btn {
+    .journey-btn {{
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         color: white;
         border: none;
@@ -134,37 +170,35 @@ st.markdown("""
         margin-top: 20px;
         cursor: pointer;
         box-shadow: 0 10px 30px rgba(5, 150, 105, 0.3);
-    }
+    }}
     
-    /* Contact Section - Powder Blue */
-    .contact-section {
+    .contact-section {{
         background: rgba(255,255,255,0.4);
         padding: 30px;
         border-radius: 20px;
         margin-top: 30px;
         backdrop-filter: blur(10px);
-    }
+    }}
     
-    .contact-card {
+    .contact-card {{
         background: rgba(255,255,255,0.9);
         padding: 15px;
         border-radius: 12px;
         margin: 8px 0;
         border-left: 4px solid #EF4444;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+    }}
     
-    .contact-card.it {border-left-color: #3B82F6;}
-    .contact-card.salary {border-left-color: #F59E0B;}
-    .contact-card.onboard {border-left-color: #10B981;}
-    .contact-card.training {border-left-color: #8B5CF6; background: linear-gradient(135deg, #F0FDF4, #ECFDF5);}
+    .contact-card.it {{border-left-color: #3B82F6;}}
+    .contact-card.salary {{border-left-color: #F59E0B;}}
+    .contact-card.onboard {{border-left-color: #10B981;}}
+    .contact-card.training {{border-left-color: #8B5CF6; background: linear-gradient(135deg, #F0FDF4, #ECFDF5);}}
     
-    .contact-number {color: #DC2626; font-weight: bold; font-size: 1.1em;}
-    .contact-number.green {color: #059669;}
-    .contact-number.blue {color: #2563EB;}
+    .contact-number {{color: #DC2626; font-weight: bold; font-size: 1.1em;}}
+    .contact-number.green {{color: #059669;}}
+    .contact-number.blue {{color: #2563EB;}}
     
-    /* Dashboard Cards - Powder Blue */
-    .dash-card {
+    .dash-card {{
         background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
         border-radius: 20px;
         padding: 30px;
@@ -173,21 +207,21 @@ st.markdown("""
         transition: all 0.3s;
         cursor: pointer;
         border: 2px solid rgba(255,255,255,0.5);
-    }
+    }}
     
-    .dash-card:hover {
+    .dash-card:hover {{
         transform: translateY(-5px);
         box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
-    }
+    }}
     
-    h1, h2, h3 {color: #1e3a5f !important;}
+    h1, h2, h3 {{color: #1e3a5f !important;}}
     
-    @media (max-width: 768px) {
-        .namaste-text {font-size: 2.5em;}
-        .welcome-text {font-size: 1.2em;}
-        .logo-container {width: 100px; height: 100px;}
-        .logo-img {width: 90px; height: 90px;}
-    }
+    @media (max-width: 768px) {{
+        .namaste-text {{font-size: 2.5em;}}
+        .welcome-text {{font-size: 1.2em;}}
+        .logo-container {{width: 100px; height: 100px;}}
+        .logo-img {{width: 90px; height: 90px;}}
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -219,19 +253,19 @@ def save_data(data):
 
 # LANDING PAGE
 if st.session_state.page == 'landing':
-    # Hero with Logo - Using your GitHub logo file
-    st.markdown("""
+    # Hero with Logo - Using base64 encoded image
+    st.markdown(f"""
     <div class="hero-section">
         <div class="logo-container">
-            <img src="Medanta Lucknow Logo.jpg" class="logo-img" alt="Medanta Logo" 
-                 onerror="this.onerror=null; this.src='https://www.medanta.org/images/medanta-logo.png'; this.onerror=function(){this.parentElement.innerHTML='<div style=font-size:60px;>🏥</div>';}">
+            <img src="{logo_src}" class="logo-img" alt="Medanta Logo" 
+                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=font-size:60px;>🏥</div>';">
         </div>
         <h1 class="namaste-text">Namaste! 🙏</h1>
         <p class="welcome-text">Welcome to Medanta</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Portal Selection - NO WHITE BACKGROUND
+    # Portal Selection
     st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     st.subheader("Choose Your Portal")
     
@@ -353,7 +387,7 @@ elif st.session_state.page == 'employee_dashboard':
     </div>
     """, unsafe_allow_html=True)
     
-    # Progress - Powder Blue Card
+    # Progress
     progress = 0
     if user.get('handbook_viewed'): progress += 33
     if user.get('assessment_passed'): progress += 33
@@ -372,7 +406,7 @@ elif st.session_state.page == 'employee_dashboard':
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Modules - Powder Blue Cards
+    # Modules
     st.subheader("🎯 Learning Modules")
     
     col1, col2 = st.columns(2)
@@ -435,19 +469,26 @@ elif st.session_state.page == 'handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT
+# ASSESSMENT - Using questions from CSV
 elif st.session_state.page == 'assessment':
     st.subheader("📝 Assessment")
     st.info("Score 80% or higher to pass. You can reattempt if needed.")
     
     user = st.session_state.user
+    questions = load_questions()
     
     with st.form("assessment_form"):
-        q1 = st.radio("Q1. Patient safety is everyone's responsibility?", ["True", "False"], index=None)
-        q2 = st.radio("Q2. Medanta's core value is?", ["Profit first", "Patient first", "Speed", "Cost"], index=None)
-        q3 = st.radio("Q3. HIPAA protects?", ["Patient privacy", "Doctors", "Money", "Buildings"], index=None)
-        q4 = st.radio("Q4. In emergency, you should?", ["Panic", "Follow protocol", "Run", "Hide"], index=None)
-        q5 = st.radio("Q5. Teamwork is?", ["Optional", "Essential", "Not needed", "Waste"], index=None)
+        answers = {}
+        
+        for q in questions:
+            st.write(f"**Q{q['id']}. {q['question']}**")
+            answers[q['id']] = st.radio(
+                f"q_{q['id']}",
+                q['options'],
+                index=None,
+                key=f"question_{q['id']}"
+            )
+            st.write("")
         
         col1, col2 = st.columns([1,2])
         
@@ -460,32 +501,35 @@ elif st.session_state.page == 'assessment':
             submitted = st.form_submit_button("Submit")
         
         if submitted:
-            if None in [q1, q2, q3, q4, q5]:
+            if None in answers.values():
                 st.error("Answer all questions!")
             else:
+                # Calculate score
                 score = 0
-                if q1 == "True": score += 20
-                if q2 == "Patient first": score += 20
-                if q3 == "Patient privacy": score += 20
-                if q4 == "Follow protocol": score += 20
-                if q5 == "Essential": score += 20
+                total = len(questions)
+                for q in questions:
+                    if answers[q['id']] == q['options'][q['correct']]:
+                        score += 1
                 
+                percentage = (score / total) * 100
+                
+                # Update user
                 data = load_data()
                 for u in data:
                     if u['email'] == user['email']:
                         u['attempts'] = u.get('attempts', 0) + 1
-                        u['assessment_score'] = score
-                        if score >= 80:
+                        u['assessment_score'] = percentage
+                        if percentage >= 80:
                             u['assessment_passed'] = True
                         st.session_state.user = u
                         break
                 save_data(data)
                 
-                if score >= 80:
+                if percentage >= 80:
                     st.balloons()
-                    st.success(f"🎉 Passed! Score: {score}%")
+                    st.success(f"🎉 Passed! Score: {percentage:.0f}% ({score}/{total})")
                 else:
-                    st.error(f"❌ Failed. Score: {score}%. Need 80%. Try again!")
+                    st.error(f"❌ Failed. Score: {percentage:.0f}%. Need 80%. Try again!")
                 
                 if st.button("Back to Dashboard"):
                     st.session_state.page = 'employee_dashboard'
@@ -532,7 +576,7 @@ elif st.session_state.page == 'report_card':
     user = st.session_state.user
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Score", f"{user.get('assessment_score', 0)}%")
+    col1.metric("Score", f"{user.get('assessment_score', 0):.0f}%")
     col2.metric("Attempts", user.get('attempts', 0))
     col3.metric("Status", "PASSED" if user.get('assessment_passed') else "PENDING")
     
@@ -547,7 +591,7 @@ This certifies that
 has successfully completed the Medanta Induction Program.
 
 Department: {user['department']}
-Score: {user['assessment_score']}%
+Score: {user['assessment_score']:.0f}%
 Date: {datetime.now().strftime('%B %d, %Y')}
 
 Authorized by: Dr. Pallavi & Mr. Rohit
