@@ -414,13 +414,11 @@ elif st.session_state.page == 'employee_dashboard':
         
         st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📝 Assessment", use_container_width=True):
-            if not user.get('assessment_passed'):
-                st.session_state.assessment_submitted = False
-                st.session_state.assessment_result = None
-                st.session_state.page = 'assessment'
-                st.rerun()
-            else:
-                st.success("Already passed!")
+            # Reset assessment state for reattempt
+            st.session_state.assessment_submitted = False
+            st.session_state.assessment_result = None
+            st.session_state.page = 'assessment'
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
@@ -458,14 +456,22 @@ elif st.session_state.page == 'handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT - FIXED: Button outside form
+# ASSESSMENT - WITH REATTEMPT OPTION
 elif st.session_state.page == 'assessment':
     st.subheader("📝 Assessment")
-    st.info("Answer all questions. You need 80% to pass.")
     
     user = st.session_state.user
     questions = load_questions()
     
+    # Show previous score if exists
+    if user.get('assessment_score') is not None:
+        st.info(f"Previous Score: {user['assessment_score']:.0f}% | Attempts: {user.get('attempts', 0)}")
+        if user.get('assessment_passed'):
+            st.success("✅ You have already passed! You can reattempt for practice.")
+        else:
+            st.warning("❌ You need 80% to pass. Try again!")
+    
+    st.write("Answer all questions. You need 80% to pass.")
     st.caption(f"Total Questions: {len(questions)}")
     
     # Show form only if not submitted yet
@@ -531,21 +537,33 @@ elif st.session_state.page == 'assessment':
         score = result['score']
         total = result['total']
         
+        st.markdown("---")
+        st.subheader("📊 Result")
+        
         if percentage >= 80:
             st.balloons()
             st.success(f"🎉 Congratulations! You Passed!")
-            st.write(f"**Score: {percentage:.0f}% ({score}/{total})**")
         else:
-            st.error(f"❌ You did not pass. Need 80% to pass.")
-            st.write(f"**Your Score: {percentage:.0f}% ({score}/{total})**")
-            st.info("You can reattempt the assessment from your dashboard.")
+            st.error(f"❌ You did not pass.")
         
-        # Button OUTSIDE form - this works!
-        if st.button("← Back to Dashboard"):
-            st.session_state.assessment_submitted = False
-            st.session_state.assessment_result = None
-            st.session_state.page = 'employee_dashboard'
-            st.rerun()
+        st.write(f"**Score: {percentage:.0f}% ({score}/{total})**")
+        st.info("You need 80% to pass.")
+        
+        # Buttons OUTSIDE form
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔄 Reattempt Assessment"):
+                st.session_state.assessment_submitted = False
+                st.session_state.assessment_result = None
+                st.rerun()
+        
+        with col2:
+            if st.button("← Back to Dashboard"):
+                st.session_state.assessment_submitted = False
+                st.session_state.assessment_result = None
+                st.session_state.page = 'employee_dashboard'
+                st.rerun()
 
 # LEARNING JOURNEY
 elif st.session_state.page == 'learning_journey':
