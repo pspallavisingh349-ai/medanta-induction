@@ -21,11 +21,10 @@ def get_logo_base64():
     except:
         return None
 
-# Load questions from CSV - CORRECTED FOR YOUR FORMAT
+# Load questions from CSV
 def load_questions():
     try:
         df = pd.read_csv("questions.csv")
-        # Remove empty rows
         df = df.dropna(subset=['Question'])
         
         questions = []
@@ -33,7 +32,6 @@ def load_questions():
             q_id = int(row['Q No'])
             question_text = str(row['Question'])
             
-            # Get options
             options = [
                 str(row['Option A']),
                 str(row['Option B']),
@@ -41,9 +39,8 @@ def load_questions():
                 str(row['Option D'])
             ]
             
-            # Convert answer letter to index (A=0, B=1, C=2, D=3)
             answer_letter = str(row['Answer']).strip().upper()
-            correct_index = ord(answer_letter) - ord('A')  # A->0, B->1, etc.
+            correct_index = ord(answer_letter) - ord('A')
             
             questions.append({
                 "id": q_id,
@@ -65,7 +62,7 @@ if logo_base64:
 else:
     logo_src = "https://www.medanta.org/images/medanta-logo.png"
 
-# CSS - Powder Blue Theme
+# CSS
 st.markdown(f"""
 <style>
     .stApp {{
@@ -224,10 +221,13 @@ if 'user' not in st.session_state:
     st.session_state.user = None
 if 'admin' not in st.session_state:
     st.session_state.admin = None
+if 'assessment_submitted' not in st.session_state:
+    st.session_state.assessment_submitted = False
+if 'assessment_result' not in st.session_state:
+    st.session_state.assessment_result = None
 
 DATA_FILE = "employees.json"
 
-# Admin credentials
 ADMIN_USERS = {
     "pallavi.singh@medanta.org": "Pallavi@2024",
     "rohit.singh@medanta.org": "Rohit@2024"
@@ -269,7 +269,6 @@ if st.session_state.page == 'landing':
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Contacts
     st.markdown('<div class="contact-section">', unsafe_allow_html=True)
     st.subheader("📞 Key Contacts")
     
@@ -377,7 +376,6 @@ elif st.session_state.page == 'employee_dashboard':
     </div>
     """, unsafe_allow_html=True)
     
-    # Progress
     progress = 0
     if user.get('handbook_viewed'): progress += 33
     if user.get('assessment_passed'): progress += 33
@@ -396,7 +394,6 @@ elif st.session_state.page == 'employee_dashboard':
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Modules
     st.subheader("🎯 Learning Modules")
     
     col1, col2 = st.columns(2)
@@ -418,6 +415,8 @@ elif st.session_state.page == 'employee_dashboard':
         st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📝 Assessment", use_container_width=True):
             if not user.get('assessment_passed'):
+                st.session_state.assessment_submitted = False
+                st.session_state.assessment_result = None
                 st.session_state.page = 'assessment'
                 st.rerun()
             else:
@@ -459,75 +458,94 @@ elif st.session_state.page == 'handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT - NOW READS ALL 10 QUESTIONS FROM YOUR CSV
+# ASSESSMENT - FIXED: Button outside form
 elif st.session_state.page == 'assessment':
     st.subheader("📝 Assessment")
     st.info("Answer all questions. You need 80% to pass.")
     
     user = st.session_state.user
-    questions = load_questions()  # This now reads all 10 questions from your CSV
+    questions = load_questions()
     
-    # Show how many questions loaded
     st.caption(f"Total Questions: {len(questions)}")
     
-    with st.form("assessment_form"):
-        answers = {}
-        
-        for q in questions:
-            st.write(f"**Q{q['id']}. {q['question']}**")
-            answers[q['id']] = st.radio(
-                f"q_{q['id']}",
-                q['options'],
-                index=None,
-                key=f"question_{q['id']}",
-                label_visibility="collapsed"
-            )
-            st.write("")
-        
-        col1, col2 = st.columns([1,2])
-        
-        with col1:
-            if st.form_submit_button("← Back"):
-                st.session_state.page = 'employee_dashboard'
-                st.rerun()
-        
-        with col2:
-            submitted = st.form_submit_button("Submit")
-        
-        if submitted:
-            if None in answers.values():
-                st.error("Answer all questions!")
-            else:
-                # Calculate score
-                score = 0
-                total = len(questions)
-                for q in questions:
-                    if answers[q['id']] == q['options'][q['correct']]:
-                        score += 1
-                
-                percentage = (score / total) * 100
-                
-                # Update user
-                data = load_data()
-                for u in data:
-                    if u['email'] == user['email']:
-                        u['attempts'] = u.get('attempts', 0) + 1
-                        u['assessment_score'] = percentage
-                        if percentage >= 80:
-                            u['assessment_passed'] = True
-                        st.session_state.user = u
-                        break
-                save_data(data)
-                
-                if percentage >= 80:
-                    st.balloons()
-                    st.success(f"🎉 Passed! Score: {percentage:.0f}% ({score}/{total})")
+    # Show form only if not submitted yet
+    if not st.session_state.assessment_submitted:
+        with st.form("assessment_form"):
+            answers = {}
+            
+            for q in questions:
+                st.write(f"**Q{q['id']}. {q['question']}**")
+                answers[q['id']] = st.radio(
+                    f"q_{q['id']}",
+                    q['options'],
+                    index=None,
+                    key=f"question_{q['id']}",
+                    label_visibility="collapsed"
+                )
+                st.write("")
+            
+            # Only Submit button inside form
+            submitted = st.form_submit_button("Submit Assessment")
+            
+            if submitted:
+                if None in answers.values():
+                    st.error("Answer all questions!")
+                    st.stop()
                 else:
-                    st.error(f"❌ Failed. Score: {percentage:.0f}%. Need 80%. Try again!")
-                
-                if st.button("Back to Dashboard"):
-                    st.session_state.page = 'employee_dashboard'
+                    # Calculate score
+                    score = 0
+                    total = len(questions)
+                    for q in questions:
+                        if answers[q['id']] == q['options'][q['correct']]:
+                            score += 1
+                    
+                    percentage = (score / total) * 100
+                    
+                    # Save result to session state
+                    st.session_state.assessment_result = {
+                        'score': score,
+                        'total': total,
+                        'percentage': percentage
+                    }
+                    st.session_state.assessment_submitted = True
+                    
+                    # Update user data
+                    data = load_data()
+                    for u in data:
+                        if u['email'] == user['email']:
+                            u['attempts'] = u.get('attempts', 0) + 1
+                            u['assessment_score'] = percentage
+                            if percentage >= 80:
+                                u['assessment_passed'] = True
+                            st.session_state.user = u
+                            break
+                    save_data(data)
+                    
+                    # Rerun to show results
                     st.rerun()
+    
+    # Show results (outside form)
+    else:
+        result = st.session_state.assessment_result
+        percentage = result['percentage']
+        score = result['score']
+        total = result['total']
+        
+        if percentage >= 80:
+            st.balloons()
+            st.success(f"🎉 Congratulations! You Passed!")
+            st.write(f"**Score: {percentage:.0f}% ({score}/{total})**")
+        else:
+            st.error(f"❌ You did not pass. Need 80% to pass.")
+            st.write(f"**Your Score: {percentage:.0f}% ({score}/{total})**")
+            st.info("You can reattempt the assessment from your dashboard.")
+        
+        # Button OUTSIDE form - this works!
+        if st.button("← Back to Dashboard"):
+            st.session_state.assessment_submitted = False
+            st.session_state.assessment_result = None
+            st.session_state.page = 'employee_dashboard'
+            st.rerun()
 
 # LEARNING JOURNEY
 elif st.session_state.page == 'learning_journey':
@@ -637,7 +655,6 @@ elif st.session_state.page == 'admin_dashboard':
     
     data = load_data()
     
-    # Stats
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total", len(data))
     col2.metric("Passed", len([e for e in data if e.get('assessment_passed')]))
@@ -645,7 +662,6 @@ elif st.session_state.page == 'admin_dashboard':
     avg = sum(e.get('assessment_score', 0) for e in data) / len(data) if data else 0
     col4.metric("Avg Score", f"{avg:.1f}%")
     
-    # Table
     st.markdown("---")
     if data:
         df = pd.DataFrame(data)
