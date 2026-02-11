@@ -205,7 +205,8 @@
     <div class="container">
         <div class="left-panel">
             <div class="logo">
-                <img src="backend/Medanta Lucknow Logo.jpg" alt="Medanta Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>'">
+                <!-- Fixed logo path for GitHub Pages -->
+                <img src="Medanta Lucknow Logo.jpg" alt="Medanta Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>'">
             </div>
             <h1>Welcome to Medanta</h1>
             <p>Begin your journey with us. Complete your induction to become part of our family dedicated to delivering exceptional healthcare.</p>
@@ -274,13 +275,18 @@
             </div>
             
             <div class="admin-link">
-                <a href="admin.html">🔐 Administrator Portal</a>
+                <!-- Link to Streamlit Cloud admin dashboard -->
+                <a href="https://medanta-induction.streamlit.app " target="_blank">🔐 Administrator Portal</a>
             </div>
         </div>
     </div>
 
     <script>
-      const API_URL = "https://your-streamlit-url.streamlit.app";
+        // ⚠️ IMPORTANT: Replace this with your actual FastAPI backend URL
+        // Option 1: Local testing - http://localhost:8000
+        // Option 2: Render deployment - https://your-app.onrender.com 
+        // Option 3: Railway deployment - https://your-app.up.railway.app 
+        const API_URL = "https://medanta-api.onrender.com ";  // ← CHANGE THIS
         
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -309,10 +315,15 @@
             };
             if (data) options.body = JSON.stringify(data);
             
-            const response = await fetch(`${API_URL}${endpoint}`, options);
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.detail || 'Error occurred');
-            return result;
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.detail || 'Error occurred');
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw new Error('Cannot connect to server. Please try again later.');
+            }
         }
         
         async function handleRegister(e) {
@@ -378,6 +389,4 @@
         }
     </script>
 </body>
-
 </html>
-
