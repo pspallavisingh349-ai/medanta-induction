@@ -16,116 +16,47 @@ st.set_page_config(
 # Function to load and encode logo
 def get_logo_base64():
     try:
-        # Try different possible filenames
-        possible_names = ["Medanta Lucknow Logo.jpg", "medanta lucknow logo.jpg", "Medanta_Lucknow_Logo.jpg"]
-        for name in possible_names:
-            if os.path.exists(name):
-                with open(name, "rb") as f:
-                    return base64.b64encode(f.read()).decode()
-        return None
-    except Exception as e:
+        with open("Medanta Lucknow Logo.jpg", "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except:
         return None
 
-# Load questions from CSV - FIXED VERSION
+# Load questions from CSV - CORRECTED FOR YOUR FORMAT
 def load_questions():
     try:
-        # Try to read questions.csv with different formats
-        if os.path.exists("questions.csv"):
-            df = pd.read_csv("questions.csv")
-            
-            # Debug: Show what columns are in the file
-            st.write("CSV Columns found:", list(df.columns))
-            
-            questions = []
-            for idx, row in df.iterrows():
-                # Try different column name formats
-                q_id = idx + 1
-                
-                # Get question text
-                question_text = ""
-                for col in ['question', 'Question', 'QUESTION', 'q', 'Q']:
-                    if col in df.columns:
-                        question_text = str(row[col])
-                        break
-                
-                # Get options (try different column names)
-                options = []
-                for i in range(1, 5):
-                    found = False
-                    for col in [f'option{i}', f'Option{i}', f'OPTION{i}', f'opt{i}', f'Opt{i}']:
-                        if col in df.columns:
-                            options.append(str(row[col]))
-                            found = True
-                            break
-                    if not found:
-                        options.append(f"Option {i}")
-                
-                # Get correct answer
-                correct = 0
-                for col in ['correct', 'Correct', 'CORRECT', 'answer', 'Answer', 'ANSWER']:
-                    if col in df.columns:
-                        correct_val = row[col]
-                        # Handle if correct is the text or index
-                        if isinstance(correct_val, str) and correct_val in options:
-                            correct = options.index(correct_val)
-                        else:
-                            correct = int(correct_val) - 1  # Convert to 0-based index
-                        break
-                
-                questions.append({
-                    "id": q_id,
-                    "question": question_text,
-                    "options": options,
-                    "correct": correct
-                })
-            
-            if questions:
-                return questions
+        df = pd.read_csv("questions.csv")
+        # Remove empty rows
+        df = df.dropna(subset=['Question'])
         
-        # If we get here, no valid questions found
-        raise Exception("No valid questions in CSV")
+        questions = []
+        for idx, row in df.iterrows():
+            q_id = int(row['Q No'])
+            question_text = str(row['Question'])
+            
+            # Get options
+            options = [
+                str(row['Option A']),
+                str(row['Option B']),
+                str(row['Option C']),
+                str(row['Option D'])
+            ]
+            
+            # Convert answer letter to index (A=0, B=1, C=2, D=3)
+            answer_letter = str(row['Answer']).strip().upper()
+            correct_index = ord(answer_letter) - ord('A')  # A->0, B->1, etc.
+            
+            questions.append({
+                "id": q_id,
+                "question": question_text,
+                "options": options,
+                "correct": correct_index
+            })
+        
+        return questions
         
     except Exception as e:
-        # Show error for debugging
-        st.error(f"Error loading questions.csv: {str(e)}")
-        st.info("Using default questions. Please check your questions.csv file format.")
-        
-        # Return only 3 default questions as fallback
-        return [
-            {
-                "id": 1, 
-                "question": "What is the primary mission of Medanta?", 
-                "options": [
-                    "To provide affordable healthcare to all",
-                    "To deliver world-class healthcare with a patient-first approach", 
-                    "To maximize profits while providing care",
-                    "To focus only on research and development"
-                ], 
-                "correct": 1
-            },
-            {
-                "id": 2, 
-                "question": "What does 'Samvaad' represent in Medanta's culture?", 
-                "options": [
-                    "A type of medical procedure",
-                    "Open communication and dialogue", 
-                    "A billing system",
-                    "A patient discharge process"
-                ], 
-                "correct": 1
-            },
-            {
-                "id": 3, 
-                "question": "Which of the following is a core value at Medanta?", 
-                "options": [
-                    "Profit maximization",
-                    "Patient centricity and clinical excellence", 
-                    "Cost cutting at all costs",
-                    "Rapid expansion over quality"
-                ], 
-                "correct": 1
-            }
-        ]
+        st.error(f"Error loading questions: {str(e)}")
+        return []
 
 # Get logo
 logo_base64 = get_logo_base64()
@@ -240,20 +171,6 @@ st.markdown(f"""
         background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
     }}
     
-    .journey-btn {{
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        color: white;
-        border: none;
-        padding: 20px;
-        border-radius: 50px;
-        font-size: 1.3em;
-        font-weight: 700;
-        width: 100%;
-        margin-top: 20px;
-        cursor: pointer;
-        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.3);
-    }}
-    
     .contact-section {{
         background: rgba(255,255,255,0.4);
         padding: 30px;
@@ -297,13 +214,6 @@ st.markdown(f"""
     }}
     
     h1, h2, h3 {{color: #1e3a5f !important;}}
-    
-    @media (max-width: 768px) {{
-        .namaste-text {{font-size: 2.5em;}}
-        .welcome-text {{font-size: 1.2em;}}
-        .logo-container {{width: 100px; height: 100px;}}
-        .logo-img {{width: 90px; height: 90px;}}
-    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -335,7 +245,6 @@ def save_data(data):
 
 # LANDING PAGE
 if st.session_state.page == 'landing':
-    # Hero with Logo
     st.markdown(f"""
     <div class="hero-section">
         <div class="logo-container">
@@ -347,7 +256,6 @@ if st.session_state.page == 'landing':
     </div>
     """, unsafe_allow_html=True)
     
-    # Portal Selection
     st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     st.subheader("Choose Your Portal")
     
@@ -551,13 +459,16 @@ elif st.session_state.page == 'handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT - Using questions from CSV
+# ASSESSMENT - NOW READS ALL 10 QUESTIONS FROM YOUR CSV
 elif st.session_state.page == 'assessment':
     st.subheader("📝 Assessment")
-    st.info("Score 80% or higher to pass. You can reattempt if needed.")
+    st.info("Answer all questions. You need 80% to pass.")
     
     user = st.session_state.user
-    questions = load_questions()  # This will now properly load from CSV
+    questions = load_questions()  # This now reads all 10 questions from your CSV
+    
+    # Show how many questions loaded
+    st.caption(f"Total Questions: {len(questions)}")
     
     with st.form("assessment_form"):
         answers = {}
