@@ -9,30 +9,17 @@ import base64
 st.set_page_config(
     page_title="Medanta Induction Portal",
     page_icon="🏥",
-    layout="wide",
+    layout="centered",  # Changed to centered for better layout
     initial_sidebar_state="collapsed"
 )
 
-# Function to load logo - TRY MULTIPLE METHODS
+# Function to load logo
 def get_logo_src():
-    # Method 1: Try local file with base64
     try:
         with open("Medanta Lucknow Logo.jpg", "rb") as f:
             return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
     except:
-        pass
-    
-    # Method 2: Try different filename variations
-    try:
-        for filename in ["medanta lucknow logo.jpg", "Medanta_Lucknow_Logo.jpg", "logo.jpg", "medanta.jpg"]:
-            if os.path.exists(filename):
-                with open(filename, "rb") as f:
-                    return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
-    except:
-        pass
-    
-    # Method 3: Use Medanta official logo URL
-    return "https://www.medanta.org/images/medanta-logo.png"
+        return "https://www.medanta.org/images/medanta-logo.png"
 
 # Load questions from CSV
 def load_questions():
@@ -71,7 +58,7 @@ def load_questions():
 # Get logo source
 logo_src = get_logo_src()
 
-# CSS - Fixed layout
+# CSS - Fixed to remove empty patches
 st.markdown("""
 <style>
     .stApp {
@@ -81,49 +68,54 @@ st.markdown("""
     
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Remove default padding */
+    /* Remove ALL extra padding */
     .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        max-width: 100%;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 800px;
+    }
+    
+    /* Remove gap between elements */
+    .element-container {
+        margin-bottom: 0 !important;
     }
     
     .hero-section {
         text-align: center;
         padding: 10px;
-        margin: 0;
     }
     
     .logo-img {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
         background: white;
-        padding: 10px;
+        padding: 8px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         border: 4px solid white;
         object-fit: contain;
         animation: pulse 2s infinite;
-        margin-bottom: 15px;
     }
     
     @keyframes pulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(0,0,0,0.3); }
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
     
     .namaste-text {
-        font-size: 2.8em;
+        font-size: 2.5em;
         font-weight: 700;
-        margin: 0;
+        margin: 10px 0;
         color: #1e3a5f;
         animation: slideInDown 1s ease-out, float 3s ease-in-out infinite;
     }
     
     .welcome-text {
-        font-size: 1.4em;
+        font-size: 1.3em;
         font-weight: 400;
-        margin: 5px 0 20px 0;
+        margin: 5px 0 15px 0;
         color: #3b5998;
         animation: slideInUp 1s ease-out 0.5s both;
     }
@@ -143,17 +135,8 @@ st.markdown("""
         50% { transform: translateY(-8px); }
     }
     
-    .powder-card {
-        background: linear-gradient(135deg, #E0F2FE 0%, #BFDBFE 100%);
-        border-radius: 20px;
-        padding: 25px;
-        margin: 10px auto;
-        max-width: 600px;
-        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
-        border: 2px solid rgba(255,255,255,0.5);
-    }
-    
-    .portal-btn {
+    /* Style for buttons - NO HTML WRAPPERS */
+    div[data-testid="stButton"] > button {
         background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         color: white;
         border: none;
@@ -163,63 +146,35 @@ st.markdown("""
         font-weight: 600;
         width: 100%;
         margin: 8px 0;
-        cursor: pointer;
-        transition: all 0.3s;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        transition: all 0.3s;
     }
     
-    .portal-btn:hover {
+    div[data-testid="stButton"] > button:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
     }
     
-    .portal-btn.admin {
+    div[data-testid="stButton"] > button[kind="secondary"] {
         background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
     }
     
-    .contact-section {
-        background: rgba(255,255,255,0.4);
+    /* Cards using Streamlit native components */
+    .stContainer {
+        background: linear-gradient(135deg, #E0F2FE 0%, #BFDBFE 100%);
+        border-radius: 20px;
         padding: 20px;
-        border-radius: 20px;
-        margin-top: 20px;
-        backdrop-filter: blur(10px);
-    }
-    
-    .contact-card {
-        background: rgba(255,255,255,0.9);
-        padding: 12px;
-        border-radius: 12px;
-        margin: 6px 0;
-        border-left: 4px solid #EF4444;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    
-    .contact-card.it {border-left-color: #3B82F6;}
-    .contact-card.salary {border-left-color: #F59E0B;}
-    .contact-card.onboard {border-left-color: #10B981;}
-    .contact-card.training {border-left-color: #8B5CF6; background: linear-gradient(135deg, #F0FDF4, #ECFDF5);}
-    
-    .contact-number {color: #DC2626; font-weight: bold; font-size: 1.1em;}
-    .contact-number.green {color: #059669;}
-    .contact-number.blue {color: #2563EB;}
-    
-    .dash-card {
-        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
-        border-radius: 20px;
-        padding: 25px;
-        text-align: center;
-        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.1);
-        transition: all 0.3s;
-        cursor: pointer;
+        margin: 10px 0;
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
         border: 2px solid rgba(255,255,255,0.5);
     }
     
-    .dash-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
-    }
-    
     h1, h2, h3 {color: #1e3a5f !important;}
+    
+    /* Remove empty space from columns */
+    .row-widget.stHorizontalBlock {
+        gap: 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -252,203 +207,162 @@ def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-# LANDING PAGE
+# LANDING PAGE - NO HTML WRAPPERS THAT CAUSE PATCHES
 if st.session_state.page == 'landing':
-    # Hero with Logo - Using st.image for better compatibility
+    # Hero with Logo
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         st.markdown('<div class="hero-section">', unsafe_allow_html=True)
         
-        # Try to display logo using st.image first
+        # Display logo
         try:
             if logo_src.startswith("data:"):
-                # It's base64, use HTML
                 st.markdown(f'<img src="{logo_src}" class="logo-img" alt="Medanta Logo">', unsafe_allow_html=True)
             else:
-                # It's a URL, use st.image
-                st.image(logo_src, width=120, use_column_width=False)
+                st.image(logo_src, width=100, use_column_width=False)
         except:
-            # Fallback
-            st.markdown('<div style="font-size:80px; text-align:center;">🏥</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:60px; text-align:center;">🏥</div>', unsafe_allow_html=True)
         
         st.markdown('<h1 class="namaste-text">Namaste! 🙏</h1>', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">Welcome to Medanta</p>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Portal Selection
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    st.subheader("Choose Your Portal")
+    # Portal Selection - USING ST.CONTAINER INSTEAD OF HTML DIVS
+    with st.container():
+        st.subheader("Choose Your Portal")
+        
+        if st.button("👤 Employee Portal", use_container_width=True):
+            st.session_state.page = 'employee_login'
+            st.rerun()
+        
+        if st.button("🔐 Admin Portal", use_container_width=True):
+            st.session_state.page = 'admin_login'
+            st.rerun()
     
-    if st.button("👤 Employee Portal", use_container_width=True):
-        st.session_state.page = 'employee_login'
-        st.rerun()
-    
-    if st.button("🔐 Admin Portal", use_container_width=True):
-        st.session_state.page = 'admin_login'
-        st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Contacts
-    st.markdown('<div class="contact-section">', unsafe_allow_html=True)
-    st.subheader("📞 Key Contacts")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        <div class="contact-card">
-            <b>EMR/HIS</b> - Mr. Surjendra<br>
-            <span class="contact-number">📱 9883111600</span>
-        </div>
-        <div class="contact-card salary">
-            <b>Salary</b> - HR Dept<br>
-            <span class="contact-number">📱 9560719167</span>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="contact-card it">
-            <b>IT Helpdesk</b><br>
-            <span class="contact-number blue">☎️ 1010</span>
-        </div>
-        <div class="contact-card onboard">
-            <b>Onboarding</b> - HRBP<br>
-            <span style="color:#059669;font-weight:bold;">Contact HRBP</span>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="contact-card training">
-        <b>Training</b> - Dr. Pallavi & Mr. Rohit<br>
-        <span class="contact-number green">📞 7860955988 | 7275181822</span>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Contacts - COMPACT
+    with st.container():
+        st.markdown("---")
+        st.subheader("📞 Key Contacts")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.info("**EMR/HIS** - Mr. Surjendra\n\n📱 9883111600")
+            st.info("**Salary** - HR Dept\n\n📱 9560719167")
+        
+        with col2:
+            st.info("**IT Helpdesk**\n\n☎️ 1010")
+            st.info("**Onboarding** - HRBP\n\nContact HRBP")
+        
+        st.success("**Training** - Dr. Pallavi & Mr. Rohit\n\n📞 7860955988 | 7275181822")
 
 # EMPLOYEE LOGIN
 elif st.session_state.page == 'employee_login':
-    st.markdown("""
-    <div class="hero-section">
-        <h1 style="font-size: 2.5em; color:#1e3a5f;">Employee Portal</h1>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="hero-section"><h1 style="font-size: 2em; color:#1e3a5f;">Employee Portal</h1></div>', unsafe_allow_html=True)
     
     # New Joinee
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    st.subheader("🆕 New Joinee")
-    st.write("First time? Register here:")
-    
-    with st.form("employee_reg"):
-        name = st.text_input("Full Name *", placeholder="Enter your full name")
-        email = st.text_input("Email Address *", placeholder="your.email@medanta.org")
-        department = st.text_input("Department *", placeholder="e.g., Nursing, Cardiology, HR")
-        mobile = st.text_input("Mobile Number *", placeholder="+91 XXXXX XXXXX")
+    with st.container():
+        st.subheader("🆕 New Joinee")
+        st.write("First time? Register here:")
         
-        submitted = st.form_submit_button("🚀 Begin Your Journey")
-        
-        if submitted:
-            if not all([name, email, department, mobile]):
-                st.error("Please fill all required fields!")
-            else:
-                data = load_data()
-                existing = [e for e in data if e['email'] == email]
-                
-                if existing:
-                    st.error("Email already registered! Use 'Returning User' option below.")
+        with st.form("employee_reg"):
+            name = st.text_input("Full Name *", placeholder="Enter your full name")
+            email = st.text_input("Email Address *", placeholder="your.email@medanta.org")
+            department = st.text_input("Department *", placeholder="e.g., Nursing, Cardiology, HR")
+            mobile = st.text_input("Mobile Number *", placeholder="+91 XXXXX XXXXX")
+            
+            submitted = st.form_submit_button("🚀 Begin Your Journey")
+            
+            if submitted:
+                if not all([name, email, department, mobile]):
+                    st.error("Please fill all required fields!")
                 else:
-                    new_user = {
-                        "id": len(data) + 1,
-                        "name": name,
-                        "email": email,
-                        "department": department,
-                        "mobile": mobile,
-                        "registered_at": datetime.now().isoformat(),
-                        "assessment_score": None,
-                        "assessment_passed": False,
-                        "attempts": 0,
-                        "handbook_viewed": False
-                    }
-                    data.append(new_user)
-                    save_data(data)
-                    st.session_state.user = new_user
-                    st.session_state.page = 'employee_dashboard'
-                    st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+                    data = load_data()
+                    existing = [e for e in data if e['email'] == email]
+                    
+                    if existing:
+                        st.error("Email already registered! Use 'Returning User' option below.")
+                    else:
+                        new_user = {
+                            "id": len(data) + 1,
+                            "name": name,
+                            "email": email,
+                            "department": department,
+                            "mobile": mobile,
+                            "registered_at": datetime.now().isoformat(),
+                            "assessment_score": None,
+                            "assessment_passed": False,
+                            "attempts": 0,
+                            "handbook_viewed": False
+                        }
+                        data.append(new_user)
+                        save_data(data)
+                        st.session_state.user = new_user
+                        st.session_state.page = 'employee_dashboard'
+                        st.rerun()
     
     # Returning User
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    st.subheader("🔙 Returning User")
-    st.write("Already registered? Login with your email:")
-    
-    with st.form("employee_login_form"):
-        login_email = st.text_input("Email Address", placeholder="your.email@medanta.org")
+    with st.container():
+        st.markdown("---")
+        st.subheader("🔙 Returning User")
+        st.write("Already registered? Login with your email:")
         
-        col1, col2 = st.columns([1,2])
-        
-        with col1:
-            if st.form_submit_button("← Back to Home"):
-                st.session_state.page = 'landing'
-                st.rerun()
-        
-        with col2:
-            login_submitted = st.form_submit_button("Login")
-        
-        if login_submitted:
-            if not login_email:
-                st.error("Please enter your email!")
-            else:
-                data = load_data()
-                user = [e for e in data if e['email'] == login_email]
-                
-                if user:
-                    st.session_state.user = user[0]
-                    st.success(f"Welcome back, {user[0]['name']}!")
-                    st.session_state.page = 'employee_dashboard'
+        with st.form("employee_login_form"):
+            login_email = st.text_input("Email Address", placeholder="your.email@medanta.org")
+            
+            col1, col2 = st.columns([1,2])
+            
+            with col1:
+                if st.form_submit_button("← Back to Home"):
+                    st.session_state.page = 'landing'
                     st.rerun()
+            
+            with col2:
+                login_submitted = st.form_submit_button("Login")
+            
+            if login_submitted:
+                if not login_email:
+                    st.error("Please enter your email!")
                 else:
-                    st.error("Email not found! Please register first.")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+                    data = load_data()
+                    user = [e for e in data if e['email'] == login_email]
+                    
+                    if user:
+                        st.session_state.user = user[0]
+                        st.success(f"Welcome back, {user[0]['name']}!")
+                        st.session_state.page = 'employee_dashboard'
+                        st.rerun()
+                    else:
+                        st.error("Email not found! Please register first.")
 
 # EMPLOYEE DASHBOARD
 elif st.session_state.page == 'employee_dashboard':
     user = st.session_state.user
     
-    st.markdown(f"""
-    <div class="hero-section" style="padding: 20px;">
-        <h1 style="font-size: 2em; color:#1e3a5f;">Welcome, {user['name']}!</h1>
-        <p style="color:#3b5998;">{user['department']} Department</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="hero-section"><h1 style="font-size: 1.8em; color:#1e3a5f;">Welcome, {user["name"]}!</h1><p style="color:#3b5998;">{user["department"]} Department</p></div>', unsafe_allow_html=True)
     
+    # Progress
     progress = 0
     if user.get('handbook_viewed'): progress += 33
     if user.get('assessment_passed'): progress += 33
     if user.get('departmental_induction'): progress += 34
     
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    st.subheader("📊 Your Progress")
+    with st.container():
+        st.subheader("📊 Your Progress")
+        st.progress(progress / 100)
+        st.write(f"**{progress}% Complete**")
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Handbook", "✅" if user.get('handbook_viewed') else "⏳")
+        col2.metric("Assessment", "✅" if user.get('assessment_passed') else "⏳")
+        col3.metric("Dept Induction", "✅" if user.get('departmental_induction') else "⏳")
     
-    st.progress(progress / 100)
-    st.write(f"**{progress}% Complete**")
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Handbook", "✅" if user.get('handbook_viewed') else "⏳")
-    col2.metric("Assessment", "✅" if user.get('assessment_passed') else "⏳")
-    col3.metric("Dept Induction", "✅" if user.get('departmental_induction') else "⏳")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
+    # Modules
     st.subheader("🎯 Learning Modules")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
         if st.button("📚 Employee Handbook", use_container_width=True):
             data = load_data()
             for u in data:
@@ -459,31 +373,24 @@ elif st.session_state.page == 'employee_dashboard':
             save_data(data)
             st.session_state.page = 'handbook'
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📝 Assessment", use_container_width=True):
             st.session_state.assessment_submitted = False
             st.session_state.assessment_result = None
             st.session_state.page = 'assessment'
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
         if st.button("🎯 Learning Journey", use_container_width=True):
             st.session_state.page = 'learning_journey'
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📊 Report Card", use_container_width=True):
             if user.get('assessment_passed'):
                 st.session_state.page = 'report_card'
                 st.rerun()
             else:
                 st.warning("Complete assessment first!")
-        st.markdown('</div>', unsafe_allow_html=True)
     
     if st.button("🚪 Logout", type="secondary"):
         st.session_state.user = None
@@ -611,28 +518,26 @@ elif st.session_state.page == 'learning_journey':
     user = st.session_state.user
     
     items = [
-        ("✅", "Welcome", "Completed", "#059669"),
+        ("✅", "Welcome", "Completed", "green"),
         ("✅" if user.get('handbook_viewed') else "⏳", "Handbook", 
          "Completed" if user.get('handbook_viewed') else "Pending", 
-         "#059669" if user.get('handbook_viewed') else "#F59E0B"),
+         "green" if user.get('handbook_viewed') else "orange"),
         ("✅" if user.get('assessment_passed') else "⏳", "Assessment",
          "Passed" if user.get('assessment_passed') else "In Progress",
-         "#059669" if user.get('assessment_passed') else "#3B82F6"),
-        ("⏳", "Departmental Induction", "Pending", "#9CA3AF"),
-        ("🔒", "Certificate", "Locked", "#9CA3AF")
+         "green" if user.get('assessment_passed') else "blue"),
+        ("⏳", "Departmental Induction", "Pending", "gray"),
+        ("🔒", "Certificate", "Locked", "gray")
     ]
     
     for icon, title, status, color in items:
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #E0F2FE, #DBEAFE); 
-                    padding:20px; border-radius:15px; margin:10px 0; 
-                    border-left:5px solid {color}; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:1.1em; color:#1e3a5f;"><b>{icon} {title}</b></span>
-                <span style="color:{color}; font-weight:bold;">{status}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        if color == "green":
+            st.success(f"**{icon} {title}** - {status}")
+        elif color == "orange":
+            st.warning(f"**{icon} {title}** - {status}")
+        elif color == "blue":
+            st.info(f"**{icon} {title}** - {status}")
+        else:
+            st.write(f"**{icon} {title}** - {status}")
     
     if st.button("← Back"):
         st.session_state.page = 'employee_dashboard'
@@ -674,37 +579,30 @@ Authorized by: Dr. Pallavi & Mr. Rohit
 
 # ADMIN LOGIN
 elif st.session_state.page == 'admin_login':
-    st.markdown("""
-    <div class="hero-section">
-        <h1 style="font-size: 2.5em; color:#1e3a5f;">Admin Portal</h1>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="hero-section"><h1 style="font-size: 2em; color:#1e3a5f;">Admin Portal</h1></div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    
-    with st.form("admin_login"):
-        email = st.text_input("Admin Email")
-        password = st.text_input("Password", type="password")
-        
-        col1, col2 = st.columns([1,2])
-        
-        with col1:
-            if st.form_submit_button("← Back"):
-                st.session_state.page = 'landing'
-                st.rerun()
-        
-        with col2:
-            submitted = st.form_submit_button("Login")
-        
-        if submitted:
-            if email in ADMIN_USERS and password == ADMIN_USERS[email]:
-                st.session_state.admin = email
-                st.session_state.page = 'admin_dashboard'
-                st.rerun()
-            else:
-                st.error("Invalid credentials!")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container():
+        with st.form("admin_login"):
+            email = st.text_input("Admin Email")
+            password = st.text_input("Password", type="password")
+            
+            col1, col2 = st.columns([1,2])
+            
+            with col1:
+                if st.form_submit_button("← Back"):
+                    st.session_state.page = 'landing'
+                    st.rerun()
+            
+            with col2:
+                submitted = st.form_submit_button("Login")
+            
+            if submitted:
+                if email in ADMIN_USERS and password == ADMIN_USERS[email]:
+                    st.session_state.admin = email
+                    st.session_state.page = 'admin_dashboard'
+                    st.rerun()
+                else:
+                    st.error("Invalid credentials!")
 
 # ADMIN DASHBOARD
 elif st.session_state.page == 'admin_dashboard':
