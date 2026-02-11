@@ -16,33 +16,115 @@ st.set_page_config(
 # Function to load and encode logo
 def get_logo_base64():
     try:
-        with open("Medanta Lucknow Logo.jpg", "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
+        # Try different possible filenames
+        possible_names = ["Medanta Lucknow Logo.jpg", "medanta lucknow logo.jpg", "Medanta_Lucknow_Logo.jpg"]
+        for name in possible_names:
+            if os.path.exists(name):
+                with open(name, "rb") as f:
+                    return base64.b64encode(f.read()).decode()
+        return None
+    except Exception as e:
         return None
 
-# Load questions from CSV
+# Load questions from CSV - FIXED VERSION
 def load_questions():
     try:
-        df = pd.read_csv("questions.csv")
-        questions = []
-        for _, row in df.iterrows():
-            questions.append({
-                "id": row['id'],
-                "question": row['question'],
-                "options": [row['option1'], row['option2'], row['option3'], row['option4']],
-                "correct": int(row['correct'])
-            })
-        return questions
-    except:
-        # Fallback questions if CSV not found
+        # Try to read questions.csv with different formats
+        if os.path.exists("questions.csv"):
+            df = pd.read_csv("questions.csv")
+            
+            # Debug: Show what columns are in the file
+            st.write("CSV Columns found:", list(df.columns))
+            
+            questions = []
+            for idx, row in df.iterrows():
+                # Try different column name formats
+                q_id = idx + 1
+                
+                # Get question text
+                question_text = ""
+                for col in ['question', 'Question', 'QUESTION', 'q', 'Q']:
+                    if col in df.columns:
+                        question_text = str(row[col])
+                        break
+                
+                # Get options (try different column names)
+                options = []
+                for i in range(1, 5):
+                    found = False
+                    for col in [f'option{i}', f'Option{i}', f'OPTION{i}', f'opt{i}', f'Opt{i}']:
+                        if col in df.columns:
+                            options.append(str(row[col]))
+                            found = True
+                            break
+                    if not found:
+                        options.append(f"Option {i}")
+                
+                # Get correct answer
+                correct = 0
+                for col in ['correct', 'Correct', 'CORRECT', 'answer', 'Answer', 'ANSWER']:
+                    if col in df.columns:
+                        correct_val = row[col]
+                        # Handle if correct is the text or index
+                        if isinstance(correct_val, str) and correct_val in options:
+                            correct = options.index(correct_val)
+                        else:
+                            correct = int(correct_val) - 1  # Convert to 0-based index
+                        break
+                
+                questions.append({
+                    "id": q_id,
+                    "question": question_text,
+                    "options": options,
+                    "correct": correct
+                })
+            
+            if questions:
+                return questions
+        
+        # If we get here, no valid questions found
+        raise Exception("No valid questions in CSV")
+        
+    except Exception as e:
+        # Show error for debugging
+        st.error(f"Error loading questions.csv: {str(e)}")
+        st.info("Using default questions. Please check your questions.csv file format.")
+        
+        # Return only 3 default questions as fallback
         return [
-            {"id": 1, "question": "What is Medanta's primary mission?", 
-             "options": ["Profit", "Patient care", "Research", "Expansion"], "correct": 1},
-            {"id": 2, "question": "What does 'Samvaad' mean?", 
-             "options": ["Procedure", "Communication", "Billing", "Discharge"], "correct": 1},
-            {"id": 3, "question": "Patient safety is?", 
-             "options": ["Optional", "Everyone's duty", "Doctor only", "Nurse only"], "correct": 1}
+            {
+                "id": 1, 
+                "question": "What is the primary mission of Medanta?", 
+                "options": [
+                    "To provide affordable healthcare to all",
+                    "To deliver world-class healthcare with a patient-first approach", 
+                    "To maximize profits while providing care",
+                    "To focus only on research and development"
+                ], 
+                "correct": 1
+            },
+            {
+                "id": 2, 
+                "question": "What does 'Samvaad' represent in Medanta's culture?", 
+                "options": [
+                    "A type of medical procedure",
+                    "Open communication and dialogue", 
+                    "A billing system",
+                    "A patient discharge process"
+                ], 
+                "correct": 1
+            },
+            {
+                "id": 3, 
+                "question": "Which of the following is a core value at Medanta?", 
+                "options": [
+                    "Profit maximization",
+                    "Patient centricity and clinical excellence", 
+                    "Cost cutting at all costs",
+                    "Rapid expansion over quality"
+                ], 
+                "correct": 1
+            }
         ]
 
 # Get logo
@@ -253,7 +335,7 @@ def save_data(data):
 
 # LANDING PAGE
 if st.session_state.page == 'landing':
-    # Hero with Logo - Using base64 encoded image
+    # Hero with Logo
     st.markdown(f"""
     <div class="hero-section">
         <div class="logo-container">
@@ -475,7 +557,7 @@ elif st.session_state.page == 'assessment':
     st.info("Score 80% or higher to pass. You can reattempt if needed.")
     
     user = st.session_state.user
-    questions = load_questions()
+    questions = load_questions()  # This will now properly load from CSV
     
     with st.form("assessment_form"):
         answers = {}
@@ -486,7 +568,8 @@ elif st.session_state.page == 'assessment':
                 f"q_{q['id']}",
                 q['options'],
                 index=None,
-                key=f"question_{q['id']}"
+                key=f"question_{q['id']}",
+                label_visibility="collapsed"
             )
             st.write("")
         
