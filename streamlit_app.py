@@ -4,7 +4,6 @@ import json
 import os
 from datetime import datetime
 import hashlib
-import base64
 
 # Page config
 st.set_page_config(
@@ -14,88 +13,93 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Medanta Logo Base64 (embedded so it always works)
-MEDANTA_LOGO = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNkZTQzNWIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmNTdhNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI3NSIgY3k9Ijc1IiByPSI3MCIgZmlsbD0idXJsKCNncmFkKSIvPjx0ZXh0IHg9Ijc1IiB5PSI4NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmaWxsPSJ3aGl0ZSIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk1FREFOVEE8L3RleHQ+PC9zdmc+"
-
-# CSS
-st.markdown(f"""
+# CSS - Powder Blue Theme
+st.markdown("""
 <style>
-    .stApp {{
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .stApp {
+        background: linear-gradient(135deg, #B8E3FF 0%, #E0F2FE 50%, #DBEAFE 100%);
         min-height: 100vh;
-    }}
+    }
     
-    #MainMenu, footer, header {{visibility: hidden;}}
+    #MainMenu, footer, header {visibility: hidden;}
     
-    .hero-section {{
+    .hero-section {
         text-align: center;
-        padding: 40px 20px;
-        color: white;
-    }}
+        padding: 30px 20px;
+        color: #1e3a5f;
+    }
     
-    .logo-img {{
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
+    .logo-container {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 20px auto;
         background: white;
-        padding: 10px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        margin-bottom: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        border: 5px solid white;
+        overflow: hidden;
         animation: pulse 2s infinite;
-    }}
+    }
     
-    @keyframes pulse {{
-        0%, 100% {{ transform: scale(1); }}
-        50% {{ transform: scale(1.05); }}
-    }}
+    .logo-img {
+        width: 130px;
+        height: 130px;
+        object-fit: contain;
+    }
     
-    .namaste-text {{
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+        50% { transform: scale(1.03); box-shadow: 0 15px 50px rgba(0,0,0,0.2); }
+    }
+    
+    .namaste-text {
         font-size: 3.5em;
         font-weight: 700;
         margin: 0;
+        color: #1e3a5f;
         animation: slideInDown 1s ease-out, float 3s ease-in-out infinite;
-        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-    }}
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
     
-    .welcome-text {{
+    .welcome-text {
         font-size: 1.8em;
-        font-weight: 300;
+        font-weight: 400;
         margin: 10px 0 30px 0;
-        animation: slideInUp 1s ease-out 0.5s both, glow 2s ease-in-out infinite;
-    }}
+        color: #3b5998;
+        animation: slideInUp 1s ease-out 0.5s both;
+    }
     
-    @keyframes slideInDown {{
-        from {{ opacity: 0; transform: translateY(-50px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
-    }}
+    @keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     
-    @keyframes slideInUp {{
-        from {{ opacity: 0; transform: translateY(50px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
-    }}
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     
-    @keyframes float {{
-        0%, 100% {{ transform: translateY(0); }}
-        50% {{ transform: translateY(-10px); }}
-    }}
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
     
-    @keyframes glow {{
-        0%, 100% {{ text-shadow: 0 0 20px rgba(255,255,255,0.5); }}
-        50% {{ text-shadow: 0 0 40px rgba(255,255,255,0.8); }}
-    }}
-    
-    .glass-card {{
-        background: rgba(255,255,255,0.95);
-        backdrop-filter: blur(10px);
+    /* Powder Blue Cards - NO WHITE */
+    .powder-card {
+        background: linear-gradient(135deg, #E0F2FE 0%, #BFDBFE 100%);
         border-radius: 20px;
         padding: 40px;
         margin: 20px auto;
         max-width: 600px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    }}
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+        border: 2px solid rgba(255,255,255,0.5);
+    }
     
-    .portal-btn {{
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    .portal-btn {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         color: white;
         border: none;
         padding: 18px;
@@ -106,20 +110,20 @@ st.markdown(f"""
         margin: 10px 0;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }}
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
     
-    .portal-btn:hover {{
+    .portal-btn:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    }}
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    }
     
-    .portal-btn.admin {{
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }}
+    .portal-btn.admin {
+        background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
+    }
     
-    .journey-btn {{
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    .journey-btn {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
         color: white;
         border: none;
         padding: 20px;
@@ -129,34 +133,61 @@ st.markdown(f"""
         width: 100%;
         margin-top: 20px;
         cursor: pointer;
-        box-shadow: 0 10px 30px rgba(245,87,108,0.4);
-    }}
+        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.3);
+    }
     
-    .contact-section {{
-        background: rgba(255,255,255,0.1);
+    /* Contact Section - Powder Blue */
+    .contact-section {
+        background: rgba(255,255,255,0.4);
         padding: 30px;
         border-radius: 20px;
         margin-top: 30px;
-    }}
+        backdrop-filter: blur(10px);
+    }
     
-    .contact-card {{
-        background: rgba(255,255,255,0.95);
+    .contact-card {
+        background: rgba(255,255,255,0.9);
         padding: 15px;
         border-radius: 12px;
         margin: 8px 0;
-        border-left: 4px solid #e53e3e;
-    }}
+        border-left: 4px solid #EF4444;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
     
-    .contact-card.it {{border-left-color: #3182ce;}}
-    .contact-card.salary {{border-left-color: #d69e2e;}}
-    .contact-card.onboard {{border-left-color: #38a169;}}
-    .contact-card.training {{border-left-color: #805ad5; background: linear-gradient(135deg, #f0fff4, #e6fffa);}}
+    .contact-card.it {border-left-color: #3B82F6;}
+    .contact-card.salary {border-left-color: #F59E0B;}
+    .contact-card.onboard {border-left-color: #10B981;}
+    .contact-card.training {border-left-color: #8B5CF6; background: linear-gradient(135deg, #F0FDF4, #ECFDF5);}
     
-    @media (max-width: 768px) {{
-        .namaste-text {{font-size: 2.5em;}}
-        .welcome-text {{font-size: 1.2em;}}
-        .logo-img {{width: 100px; height: 100px;}}
-    }}
+    .contact-number {color: #DC2626; font-weight: bold; font-size: 1.1em;}
+    .contact-number.green {color: #059669;}
+    .contact-number.blue {color: #2563EB;}
+    
+    /* Dashboard Cards - Powder Blue */
+    .dash-card {
+        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.1);
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 2px solid rgba(255,255,255,0.5);
+    }
+    
+    .dash-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+    }
+    
+    h1, h2, h3 {color: #1e3a5f !important;}
+    
+    @media (max-width: 768px) {
+        .namaste-text {font-size: 2.5em;}
+        .welcome-text {font-size: 1.2em;}
+        .logo-container {width: 100px; height: 100px;}
+        .logo-img {width: 90px; height: 90px;}
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -170,7 +201,7 @@ if 'admin' not in st.session_state:
 
 DATA_FILE = "employees.json"
 
-# Admin credentials (hashed)
+# Admin credentials
 ADMIN_USERS = {
     "pallavi.singh@medanta.org": "Pallavi@2024",
     "rohit.singh@medanta.org": "Rohit@2024"
@@ -188,17 +219,20 @@ def save_data(data):
 
 # LANDING PAGE
 if st.session_state.page == 'landing':
-    # Hero Section with Logo
-    st.markdown(f"""
+    # Hero with Logo - Using your GitHub logo file
+    st.markdown("""
     <div class="hero-section">
-        <img src="{MEDANTA_LOGO}" class="logo-img" alt="Medanta Logo">
+        <div class="logo-container">
+            <img src="Medanta Lucknow Logo.jpg" class="logo-img" alt="Medanta Logo" 
+                 onerror="this.onerror=null; this.src='https://www.medanta.org/images/medanta-logo.png'; this.onerror=function(){this.parentElement.innerHTML='<div style=font-size:60px;>🏥</div>';}">
+        </div>
         <h1 class="namaste-text">Namaste! 🙏</h1>
         <p class="welcome-text">Welcome to Medanta</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Portal Selection
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    # Portal Selection - NO WHITE BACKGROUND
+    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     st.subheader("Choose Your Portal")
     
     if st.button("👤 Employee Portal", use_container_width=True):
@@ -221,11 +255,11 @@ if st.session_state.page == 'landing':
         st.markdown("""
         <div class="contact-card">
             <b>EMR/HIS Query</b><br>Mr. Surjendra<br>
-            <span style="color:#e53e3e;font-weight:bold;">📱 9883111600</span>
+            <span class="contact-number">📱 9883111600</span>
         </div>
         <div class="contact-card salary">
             <b>Salary Related</b><br>HR Department<br>
-            <span style="color:#e53e3e;font-weight:bold;">📱 9560719167</span>
+            <span class="contact-number">📱 9560719167</span>
         </div>
         """, unsafe_allow_html=True)
     
@@ -233,18 +267,18 @@ if st.session_state.page == 'landing':
         st.markdown("""
         <div class="contact-card it">
             <b>IT Helpdesk</b><br>Internal Extension<br>
-            <span style="color:#3182ce;font-weight:bold;">☎️ 1010</span>
+            <span class="contact-number blue">☎️ 1010</span>
         </div>
         <div class="contact-card onboard">
             <b>Onboarding Query</b><br>HR Business Partner<br>
-            <span style="color:#38a169;font-weight:bold;">Contact your HRBP</span>
+            <span style="color:#059669;font-weight:bold;">Contact your HRBP</span>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("""
     <div class="contact-card training">
         <b>Training Related</b> - Dr. Pallavi & Mr. Rohit<br>
-        <span style="color:#38a169;font-weight:bold;">📞 7860955988 | 7275181822</span>
+        <span class="contact-number green">📞 7860955988 | 7275181822</span>
     </div>
     """, unsafe_allow_html=True)
     
@@ -254,12 +288,12 @@ if st.session_state.page == 'landing':
 elif st.session_state.page == 'employee_login':
     st.markdown("""
     <div class="hero-section">
-        <h1 style="font-size: 2.5em;">Begin Your Journey</h1>
-        <p>Enter your details to get started</p>
+        <h1 style="font-size: 2.5em; color:#1e3a5f;">Begin Your Journey</h1>
+        <p style="color:#3b5998;">Enter your details to get started</p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     
     with st.form("employee_reg"):
         name = st.text_input("Full Name *", placeholder="Enter your full name")
@@ -314,18 +348,18 @@ elif st.session_state.page == 'employee_dashboard':
     
     st.markdown(f"""
     <div class="hero-section" style="padding: 20px;">
-        <h1 style="font-size: 2em;">Welcome, {user['name']}!</h1>
-        <p>{user['department']} Department</p>
+        <h1 style="font-size: 2em; color:#1e3a5f;">Welcome, {user['name']}!</h1>
+        <p style="color:#3b5998;">{user['department']} Department</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Progress
+    # Progress - Powder Blue Card
     progress = 0
     if user.get('handbook_viewed'): progress += 33
     if user.get('assessment_passed'): progress += 33
     if user.get('departmental_induction'): progress += 34
     
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     st.subheader("📊 Your Progress")
     
     st.progress(progress / 100)
@@ -338,14 +372,14 @@ elif st.session_state.page == 'employee_dashboard':
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Modules
+    # Modules - Powder Blue Cards
     st.subheader("🎯 Learning Modules")
     
     col1, col2 = st.columns(2)
     
     with col1:
+        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
         if st.button("📚 Employee Handbook", use_container_width=True):
-            # Update handbook viewed
             data = load_data()
             for u in data:
                 if u['email'] == user['email']:
@@ -353,28 +387,34 @@ elif st.session_state.page == 'employee_dashboard':
                     st.session_state.user = u
                     break
             save_data(data)
-            
             st.session_state.page = 'handbook'
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
         
+        st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📝 Assessment", use_container_width=True):
             if not user.get('assessment_passed'):
                 st.session_state.page = 'assessment'
                 st.rerun()
             else:
                 st.success("Already passed!")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
+        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
         if st.button("🎯 Learning Journey", use_container_width=True):
             st.session_state.page = 'learning_journey'
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
         
+        st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📊 Report Card", use_container_width=True):
             if user.get('assessment_passed'):
                 st.session_state.page = 'report_card'
                 st.rerun()
             else:
                 st.warning("Complete assessment first!")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     if st.button("🚪 Logout", type="secondary"):
         st.session_state.user = None
@@ -430,7 +470,6 @@ elif st.session_state.page == 'assessment':
                 if q4 == "Follow protocol": score += 20
                 if q5 == "Essential": score += 20
                 
-                # Update user
                 data = load_data()
                 for u in data:
                     if u['email'] == user['email']:
@@ -459,23 +498,24 @@ elif st.session_state.page == 'learning_journey':
     user = st.session_state.user
     
     items = [
-        ("✅", "Welcome", "Completed", "green"),
+        ("✅", "Welcome", "Completed", "#059669"),
         ("✅" if user.get('handbook_viewed') else "⏳", "Handbook", 
          "Completed" if user.get('handbook_viewed') else "Pending", 
-         "green" if user.get('handbook_viewed') else "orange"),
+         "#059669" if user.get('handbook_viewed') else "#F59E0B"),
         ("✅" if user.get('assessment_passed') else "⏳", "Assessment",
          "Passed" if user.get('assessment_passed') else "In Progress",
-         "green" if user.get('assessment_passed') else "blue"),
-        ("⏳", "Departmental Induction", "Pending", "gray"),
-        ("🔒", "Certificate", "Locked", "gray")
+         "#059669" if user.get('assessment_passed') else "#3B82F6"),
+        ("⏳", "Departmental Induction", "Pending", "#9CA3AF"),
+        ("🔒", "Certificate", "Locked", "#9CA3AF")
     ]
     
     for icon, title, status, color in items:
         st.markdown(f"""
-        <div style="background:white; padding:20px; border-radius:15px; margin:10px 0; 
-                    border-left:5px solid {color}; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #E0F2FE, #DBEAFE); 
+                    padding:20px; border-radius:15px; margin:10px 0; 
+                    border-left:5px solid {color}; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>{icon} <b>{title}</b></span>
+                <span style="font-size:1.1em; color:#1e3a5f;"><b>{icon} {title}</b></span>
                 <span style="color:{color}; font-weight:bold;">{status}</span>
             </div>
         </div>
@@ -523,11 +563,11 @@ Authorized by: Dr. Pallavi & Mr. Rohit
 elif st.session_state.page == 'admin_login':
     st.markdown("""
     <div class="hero-section">
-        <h1 style="font-size: 2.5em;">Admin Portal</h1>
+        <h1 style="font-size: 2.5em; color:#1e3a5f;">Admin Portal</h1>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     
     with st.form("admin_login"):
         email = st.text_input("Admin Email")
