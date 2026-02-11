@@ -62,7 +62,7 @@ if logo_base64:
 else:
     logo_src = "https://www.medanta.org/images/medanta-logo.png"
 
-# CSS - Fixed to remove blue patch
+# CSS
 st.markdown(f"""
 <style>
     .stApp {{
@@ -72,37 +72,29 @@ st.markdown(f"""
     
     #MainMenu, footer, header {{visibility: hidden;}}
     
-    /* Remove extra padding/margin from main container */
-    .main .block-container {{
-        padding-top: 0;
-        padding-bottom: 0;
-        max-width: 100%;
-    }}
-    
     .hero-section {{
         text-align: center;
-        padding: 20px;
-        margin: 0;
+        padding: 30px 20px;
     }}
     
     .logo-container {{
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 15px auto;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 20px auto;
         background: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-        border: 4px solid white;
+        border: 5px solid white;
         overflow: hidden;
         animation: pulse 2s infinite;
     }}
     
     .logo-img {{
-        width: 110px;
-        height: 110px;
+        width: 130px;
+        height: 130px;
         object-fit: contain;
     }}
     
@@ -112,7 +104,7 @@ st.markdown(f"""
     }}
     
     .namaste-text {{
-        font-size: 3em;
+        font-size: 3.5em;
         font-weight: 700;
         margin: 0;
         color: #1e3a5f;
@@ -120,9 +112,9 @@ st.markdown(f"""
     }}
     
     .welcome-text {{
-        font-size: 1.5em;
+        font-size: 1.8em;
         font-weight: 400;
-        margin: 5px 0 20px 0;
+        margin: 10px 0 30px 0;
         color: #3b5998;
         animation: slideInUp 1s ease-out 0.5s both;
     }}
@@ -145,8 +137,8 @@ st.markdown(f"""
     .powder-card {{
         background: linear-gradient(135deg, #E0F2FE 0%, #BFDBFE 100%);
         border-radius: 20px;
-        padding: 30px;
-        margin: 10px auto;
+        padding: 40px;
+        margin: 20px auto;
         max-width: 600px;
         box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
         border: 2px solid rgba(255,255,255,0.5);
@@ -156,12 +148,12 @@ st.markdown(f"""
         background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         color: white;
         border: none;
-        padding: 15px;
+        padding: 18px;
         border-radius: 12px;
-        font-size: 1.1em;
+        font-size: 1.2em;
         font-weight: 600;
         width: 100%;
-        margin: 8px 0;
+        margin: 10px 0;
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
@@ -178,17 +170,17 @@ st.markdown(f"""
     
     .contact-section {{
         background: rgba(255,255,255,0.4);
-        padding: 20px;
+        padding: 30px;
         border-radius: 20px;
-        margin-top: 20px;
+        margin-top: 30px;
         backdrop-filter: blur(10px);
     }}
     
     .contact-card {{
         background: rgba(255,255,255,0.9);
-        padding: 12px;
+        padding: 15px;
         border-radius: 12px;
-        margin: 6px 0;
+        margin: 8px 0;
         border-left: 4px solid #EF4444;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }}
@@ -205,7 +197,7 @@ st.markdown(f"""
     .dash-card {{
         background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
         border-radius: 20px;
-        padding: 25px;
+        padding: 30px;
         text-align: center;
         box-shadow: 0 10px 40px rgba(59, 130, 246, 0.1);
         transition: all 0.3s;
@@ -219,12 +211,6 @@ st.markdown(f"""
     }}
     
     h1, h2, h3 {{color: #1e3a5f !important;}}
-    
-    /* Remove empty space */
-    .css-1d391kg, .css-1l269bu {{
-        padding: 0;
-        margin: 0;
-    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -257,21 +243,19 @@ def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-# LANDING PAGE - COMPACT, NO EMPTY SPACE
+# LANDING PAGE
 if st.session_state.page == 'landing':
-    # Hero with Logo - NO EXTRA MARGINS
     st.markdown(f"""
     <div class="hero-section">
         <div class="logo-container">
             <img src="{logo_src}" class="logo-img" alt="Medanta Logo" 
-                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=font-size:50px;>🏥</div>';">
+                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=font-size:60px;>🏥</div>';">
         </div>
         <h1 class="namaste-text">Namaste! 🙏</h1>
         <p class="welcome-text">Welcome to Medanta</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Portal Selection - TIGHT SPACING
     st.markdown('<div class="powder-card">', unsafe_allow_html=True)
     st.subheader("Choose Your Portal")
     
@@ -285,7 +269,6 @@ if st.session_state.page == 'landing':
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Contacts - COMPACT
     st.markdown('<div class="contact-section">', unsafe_allow_html=True)
     st.subheader("📞 Key Contacts")
     
@@ -294,11 +277,11 @@ if st.session_state.page == 'landing':
     with col1:
         st.markdown("""
         <div class="contact-card">
-            <b>EMR/HIS</b> - Mr. Surjendra<br>
+            <b>EMR/HIS Query</b><br>Mr. Surjendra<br>
             <span class="contact-number">📱 9883111600</span>
         </div>
         <div class="contact-card salary">
-            <b>Salary</b> - HR Dept<br>
+            <b>Salary Related</b><br>HR Department<br>
             <span class="contact-number">📱 9560719167</span>
         </div>
         """, unsafe_allow_html=True)
@@ -306,38 +289,34 @@ if st.session_state.page == 'landing':
     with col2:
         st.markdown("""
         <div class="contact-card it">
-            <b>IT Helpdesk</b><br>
+            <b>IT Helpdesk</b><br>Internal Extension<br>
             <span class="contact-number blue">☎️ 1010</span>
         </div>
         <div class="contact-card onboard">
-            <b>Onboarding</b> - HRBP<br>
-            <span style="color:#059669;font-weight:bold;">Contact HRBP</span>
+            <b>Onboarding Query</b><br>HR Business Partner<br>
+            <span style="color:#059669;font-weight:bold;">Contact your HRBP</span>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("""
     <div class="contact-card training">
-        <b>Training</b> - Dr. Pallavi & Mr. Rohit<br>
+        <b>Training Related</b> - Dr. Pallavi & Mr. Rohit<br>
         <span class="contact-number green">📞 7860955988 | 7275181822</span>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# EMPLOYEE LOGIN - WITH RETURNING USER OPTION
+# EMPLOYEE LOGIN
 elif st.session_state.page == 'employee_login':
     st.markdown("""
     <div class="hero-section">
-        <h1 style="font-size: 2.5em; color:#1e3a5f;">Employee Portal</h1>
+        <h1 style="font-size: 2.5em; color:#1e3a5f;">Begin Your Journey</h1>
+        <p style="color:#3b5998;">Enter your details to get started</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Check if returning user
     st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    
-    # Option 1: New Registration
-    st.subheader("🆕 New Joinee")
-    st.write("First time? Register here:")
     
     with st.form("employee_reg"):
         name = st.text_input("Full Name *", placeholder="Enter your full name")
@@ -345,7 +324,15 @@ elif st.session_state.page == 'employee_login':
         department = st.text_input("Department *", placeholder="e.g., Nursing, Cardiology, HR")
         mobile = st.text_input("Mobile Number *", placeholder="+91 XXXXX XXXXX")
         
-        submitted = st.form_submit_button("🚀 Begin Your Journey")
+        col1, col2 = st.columns([1,2])
+        
+        with col1:
+            if st.form_submit_button("← Back"):
+                st.session_state.page = 'landing'
+                st.rerun()
+        
+        with col2:
+            submitted = st.form_submit_button("🚀 Begin Your Journey")
         
         if submitted:
             if not all([name, email, department, mobile]):
@@ -355,7 +342,7 @@ elif st.session_state.page == 'employee_login':
                 existing = [e for e in data if e['email'] == email]
                 
                 if existing:
-                    st.error("Email already registered! Use 'Returning User' option below.")
+                    st.session_state.user = existing[0]
                 else:
                     new_user = {
                         "id": len(data) + 1,
@@ -372,43 +359,9 @@ elif st.session_state.page == 'employee_login':
                     data.append(new_user)
                     save_data(data)
                     st.session_state.user = new_user
-                    st.session_state.page = 'employee_dashboard'
-                    st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Option 2: Returning User - LOGIN WITH SAVED CREDENTIALS
-    st.markdown('<div class="powder-card">', unsafe_allow_html=True)
-    st.subheader("🔙 Returning User")
-    st.write("Already registered? Login with your email:")
-    
-    with st.form("employee_login_form"):
-        login_email = st.text_input("Email Address", placeholder="your.email@medanta.org")
-        
-        col1, col2 = st.columns([1,2])
-        
-        with col1:
-            if st.form_submit_button("← Back to Home"):
-                st.session_state.page = 'landing'
-                st.rerun()
-        
-        with col2:
-            login_submitted = st.form_submit_button("Login")
-        
-        if login_submitted:
-            if not login_email:
-                st.error("Please enter your email!")
-            else:
-                data = load_data()
-                user = [e for e in data if e['email'] == login_email]
                 
-                if user:
-                    st.session_state.user = user[0]
-                    st.success(f"Welcome back, {user[0]['name']}!")
-                    st.session_state.page = 'employee_dashboard'
-                    st.rerun()
-                else:
-                    st.error("Email not found! Please register first.")
+                st.session_state.page = 'employee_dashboard'
+                st.rerun()
     
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -461,6 +414,7 @@ elif st.session_state.page == 'employee_dashboard':
         
         st.markdown('<div class="dash-card" style="margin-top:15px;">', unsafe_allow_html=True)
         if st.button("📝 Assessment", use_container_width=True):
+            # Reset assessment state for reattempt
             st.session_state.assessment_submitted = False
             st.session_state.assessment_result = None
             st.session_state.page = 'assessment'
@@ -502,13 +456,14 @@ elif st.session_state.page == 'handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT
+# ASSESSMENT - WITH REATTEMPT OPTION
 elif st.session_state.page == 'assessment':
     st.subheader("📝 Assessment")
     
     user = st.session_state.user
     questions = load_questions()
     
+    # Show previous score if exists
     if user.get('assessment_score') is not None:
         st.info(f"Previous Score: {user['assessment_score']:.0f}% | Attempts: {user.get('attempts', 0)}")
         if user.get('assessment_passed'):
@@ -519,6 +474,7 @@ elif st.session_state.page == 'assessment':
     st.write("Answer all questions. You need 80% to pass.")
     st.caption(f"Total Questions: {len(questions)}")
     
+    # Show form only if not submitted yet
     if not st.session_state.assessment_submitted:
         with st.form("assessment_form"):
             answers = {}
@@ -534,6 +490,7 @@ elif st.session_state.page == 'assessment':
                 )
                 st.write("")
             
+            # Only Submit button inside form
             submitted = st.form_submit_button("Submit Assessment")
             
             if submitted:
@@ -541,6 +498,7 @@ elif st.session_state.page == 'assessment':
                     st.error("Answer all questions!")
                     st.stop()
                 else:
+                    # Calculate score
                     score = 0
                     total = len(questions)
                     for q in questions:
@@ -549,6 +507,7 @@ elif st.session_state.page == 'assessment':
                     
                     percentage = (score / total) * 100
                     
+                    # Save result to session state
                     st.session_state.assessment_result = {
                         'score': score,
                         'total': total,
@@ -556,6 +515,7 @@ elif st.session_state.page == 'assessment':
                     }
                     st.session_state.assessment_submitted = True
                     
+                    # Update user data
                     data = load_data()
                     for u in data:
                         if u['email'] == user['email']:
@@ -567,8 +527,10 @@ elif st.session_state.page == 'assessment':
                             break
                     save_data(data)
                     
+                    # Rerun to show results
                     st.rerun()
     
+    # Show results (outside form)
     else:
         result = st.session_state.assessment_result
         percentage = result['percentage']
@@ -587,6 +549,7 @@ elif st.session_state.page == 'assessment':
         st.write(f"**Score: {percentage:.0f}% ({score}/{total})**")
         st.info("You need 80% to pass.")
         
+        # Buttons OUTSIDE form
         col1, col2 = st.columns(2)
         
         with col1:
