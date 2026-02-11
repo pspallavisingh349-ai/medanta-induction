@@ -586,7 +586,6 @@ def import_questions_from_csv():
         return False, 0, []
     
     try:
-        # Read CSV with possible multiple sheets indication
         df = pd.read_csv(csv_path)
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -635,6 +634,30 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_stats():
+    """FIXED: Get dashboard statistics"""
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        c.execute("SELECT COUNT(*) FROM users")
+        total_users = c.fetchone()[0]
+        
+        c.execute("SELECT COUNT(*) FROM assessments WHERE status = 'completed'")
+        completed = c.fetchone()[0]
+        
+        c.execute("SELECT AVG(score) FROM assessments WHERE status = 'completed'")
+        avg_score = c.fetchone()[0] or 0
+        
+        c.execute("SELECT COUNT(*) FROM questions")
+        total_q = c.fetchone()[0]
+        
+        conn.close()
+        return total_users, completed, avg_score, total_q
+    except Exception as e:
+        st.error(f"Stats error: {e}")
+        return 0, 0, 0, 0
+
 def get_topics():
     conn = get_db()
     c = conn.cursor()
@@ -680,7 +703,6 @@ def get_user_report_card(user_id):
                  ORDER BY topic""", (user_id,))
     results = [dict(row) for row in c.fetchall()]
     
-    # Get unique topics
     c.execute("SELECT DISTINCT category FROM questions")
     all_topics = [row[0] for row in c.fetchall()]
     conn.close()
@@ -815,7 +837,11 @@ def show_dashboard():
         st.rerun()
         return
     
-    total_users, completed, avg_score, total_q = get_stats()
+    # FIXED: Get stats with error handling
+    try:
+        total_users, completed, avg_score, total_q = get_stats()
+    except:
+        total_users, completed, avg_score, total_q = 0, 0, 0, 0
     
     st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
     
@@ -855,6 +881,8 @@ def show_dashboard():
     """, unsafe_allow_html=True)
     
     # Stats Bar
+    num_topics = len(st.session_state.get('available_topics', []))
+    
     st.markdown(f"""
         <div class="stats-bar">
             <div class="stat-item">
@@ -862,7 +890,7 @@ def show_dashboard():
                 <span class="stat-label">Questions</span>
             </div>
             <div class="stat-item">
-                <span class="stat-value">{len(st.session_state.available_topics)}</span>
+                <span class="stat-value">{num_topics}</span>
                 <span class="stat-label">Topics</span>
             </div>
             <div class="stat-item">
@@ -897,7 +925,7 @@ def show_dashboard():
             <div class="feature-card">
                 <div class="feature-icon">📝</div>
                 <div class="feature-title">Assessment</div>
-                <div class="feature-desc">Topic-wise assessments ({len(st.session_state.available_topics)} topics)</div>
+                <div class="feature-desc">Topic-wise assessments ({num_topics} topics)</div>
             </div>
         """, unsafe_allow_html=True)
         if st.button("Start Assessment", key="btn_assessment", use_container_width=True):
@@ -1032,7 +1060,12 @@ def show_topics():
         </div>
     """, unsafe_allow_html=True)
     
-    topics = st.session_state.available_topics
+    topics = st.session_state.get('available_topics', [])
+    
+    if not topics:
+        st.warning("No topics found. Please check your questions.csv file.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
     
     for topic in topics:
         # Get stats for this topic
@@ -1508,7 +1541,10 @@ def show_admin_dashboard():
         st.rerun()
         return
     
-    total_users, completed, avg_score, total_q = get_stats()
+    try:
+        total_users, completed, avg_score, total_q = get_stats()
+    except:
+        total_users, completed, avg_score, total_q = 0, 0, 0, 0
     
     st.sidebar.title("🏥 Medanta Admin")
     admin_page = st.sidebar.radio("Menu", [
@@ -1535,7 +1571,7 @@ def show_admin_dashboard():
         if completed > 0:
             st.bar_chart({"Completed": [completed], "Pending": [total_users - completed]})
         
-        st.info(f"Topics: {', '.join(st.session_state.available_topics[:5])}...")
+        st.info(f"Topics: {len(st.session_state.get('available_topics', []))}")
     
     elif admin_page == "👥 Participants":
         st.title("All Participants")
@@ -1585,7 +1621,7 @@ def show_admin_dashboard():
     elif admin_page == "📁 Import CSV":
         st.title("Import Questions")
         st.info(f"Current question count: {total_q}")
-        st.info(f"Topics: {len(st.session_state.available_topics)}")
+        st.info(f"Topics: {len(st.session_state.get('available_topics', []))}")
         
         uploaded = st.file_uploader("Upload CSV with columns: Question, Option A, Option B, Option C, Option D, Answer, Topic", type="csv")
         
