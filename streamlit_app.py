@@ -30,7 +30,7 @@ def get_logo_src():
     except:
         return None
 
-# Load questions from EXCEL (your Question_bank.xlsx) - ADDED
+# Load questions from EXCEL (your Question_bank.xlsx) - FIXED
 def load_questions():
     try:
         df = pd.read_excel("Question_bank.xlsx")
@@ -46,15 +46,24 @@ def load_questions():
                     if pd.notna(row.get(opt)) and str(row.get(opt)).strip():
                         opts.append(str(row[opt]))
                 
+                # FIX: Handle Correct_Option properly
+                correct_val = str(row.get('Correct_Option', 'A')).strip()
+                # Take first character only and convert to uppercase
+                correct_letter = correct_val[0].upper() if correct_val else 'A'
+                # Convert A,B,C,D to 0,1,2,3
+                correct_idx = ord(correct_letter) - ord('A')
+                # Ensure it's 0-3 range
+                correct_idx = max(0, min(3, correct_idx))
+                
                 questions.append({
                     "id": str(row['Question_ID']),
                     "question": str(row['Question_Text']),
                     "options": opts,
-                    "correct": ord(str(row['Correct_Option'])) - ord('A')
+                    "correct": correct_idx
                 })
             
             assessments[str(assessment_id)] = {
-                "name": assessment_df['Assessment_Name'].iloc[0],
+                "name": str(assessment_df['Assessment_Name'].iloc[0]),
                 "questions": questions
             }
         return assessments
@@ -423,8 +432,6 @@ elif st.session_state.page == 'handbook':
 
 # ASSESSMENT - UPDATED for 172 questions with 80% pass rule
 elif st.session_state.page == 'assessment':
-    st.subheader("📝 Assessment")
-    
     user = st.session_state.user
     
     if not questions_data:
@@ -495,7 +502,7 @@ elif st.session_state.page == 'assessment':
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             
-            submitted = st.form_submit_button("Submit Assessment")
+            submitted = st.form_submit_button("Submit Module")
             
             if submitted:
                 if None in answers.values():
