@@ -444,7 +444,7 @@ if st.session_state.page == 'landing':
          border-radius: 50%; pointer-events: none; z-index: 0;"></div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col1 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         if logo_src:
@@ -502,7 +502,7 @@ if st.session_state.page == 'landing':
 
 # EMPLOYEE LOGIN - White & Gold theme
 elif st.session_state.page == 'employee_login':
-    col1, col2, col1 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
         <div class="glass-card" style="margin-top: 50px;">
@@ -682,14 +682,13 @@ elif st.session_state.page == 'employee_dashboard':
     
     if st.button("🚪 Logout", type="secondary"):
         st.session_state.user = None
-        st.session_state.page = '        st.session_state.user = None
         st.session_state.page = 'landing'
         st.rerun()
 
 # HANDBOOK
 elif st.session_state.page == 'handbook':
     st.markdown('<h2 style="margin-bottom: 20px; color: #800020;">📚 Employee Handbook</h2>', unsafe_allow_html=True)
-    st.components.v1.iframe("https://online.flippingbook.com/view/652486186/  ", height=700)
+    st.components.v1.iframe("https://online.flippingbook.com/view/652486186/", height=700)
     if st.button("← Back to Dashboard"):
         st.session_state.page = 'employee_dashboard'
         st.rerun()
@@ -697,7 +696,7 @@ elif st.session_state.page == 'handbook':
 # JCI HANDBOOK
 elif st.session_state.page == 'jci_handbook':
     st.markdown('<h2 style="margin-bottom: 20px; color: #800020;">🏅 JCI Accreditation Standards</h2>', unsafe_allow_html=True)
-    st.components.v1.iframe("https://online.flippingbook.com/view/389334287/  ", height=700)
+    st.components.v1.iframe("https://online.flippingbook.com/view/389334287/", height=700)
     if st.button("← Back to Dashboard"):
         st.session_state.page = 'employee_dashboard'
         st.rerun()
@@ -880,3 +879,91 @@ elif st.session_state.page == 'report_card':
                 st.session_state.page = 'employee_dashboard'
                 st.rerun()
 
+# ADMIN LOGIN
+elif st.session_state.page == 'admin_login':
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+        <div class="glass-card" style="margin-top: 50px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 4rem; margin-bottom: 15px;">🔐</div>
+                <h2 style="font-family: Playfair Display, serif; font-size: 2.5rem; margin-bottom: 10px; color: #800020;">Admin Portal</h2>
+                <p style="color: #666666;">Authorized personnel only</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("admin_login"):
+            admin_email = st.text_input("Email", placeholder="admin@medanta.org")
+            admin_pass = st.text_input("Password", type="password", placeholder="••••••••")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.form_submit_button("← Back"):
+                    st.session_state.page = 'landing'
+                    st.rerun()
+            with col2:
+                if st.form_submit_button("Login"):
+                    if admin_email in ADMIN_USERS and ADMIN_USERS[admin_email] == admin_pass:
+                        st.session_state.admin = admin_email
+                        st.success("Welcome, Admin!")
+                        st.session_state.page = 'admin_dashboard'
+                        st.rerun()
+                    else:
+                        st.error("Invalid credentials!")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ADMIN DASHBOARD
+elif st.session_state.page == 'admin_dashboard':
+    if not st.session_state.admin:
+        st.session_state.page = 'admin_login'
+        st.rerun()
+    
+    st.markdown('<h1 style="color: #800020; margin-bottom: 30px;">📊 Admin Dashboard</h1>', unsafe_allow_html=True)
+    
+    data = load_data()
+    
+    # Stats
+    total = len(data)
+    passed = len([e for e in data if e.get('assessment_passed')])
+    handbook_viewed = len([e for e in data if e.get('handbook_viewed')])
+    
+    cols = st.columns(4)
+    with cols[0]:
+        st.metric("Total Registrations", total)
+    with cols[1]:
+        st.metric("Passed Assessment", passed)
+    with cols[2]:
+        st.metric("Handbook Viewed", handbook_viewed)
+    with cols[3]:
+        st.metric("Pass Rate", f"{(passed/total*100):.1f}%" if total > 0 else "0%")
+    
+    # Employee table
+    st.markdown('<h2 style="color: #800020; margin: 30px 0 20px 0;">👥 Registered Employees</h2>', unsafe_allow_html=True)
+    
+    if data:
+        df = pd.DataFrame(data)
+        df['registered_at'] = pd.to_datetime(df['registered_at']).dt.strftime('%Y-%m-%d %H:%M')
+        df['status'] = df.apply(lambda x: '✅ Passed' if x.get('assessment_passed') else '⏳ In Progress', axis=1)
+        
+        st.dataframe(
+            df[['name', 'email', 'department', 'category', 'status', 'registered_at']],
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # Download button
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            "📥 Download Report (CSV)",
+            csv,
+            "medanta_induction_report.csv",
+            "text/csv"
+        )
+    else:
+        st.info("No employees registered yet.")
+    
+    if st.button("🚪 Logout"):
+        st.session_state.admin = None
+        st.session_state.page = 'landing'
+        st.rerun()
