@@ -3,7 +3,6 @@ import pandas as pd
 import json
 from datetime import datetime
 import os
-import base64
 
 # ============== PAGE CONFIGURATION ==============
 st.set_page_config(
@@ -13,70 +12,42 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ============== CUSTOM CSS ==============
+# ============== CUSTOM CSS - FIXED ==============
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
     
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    /* White Background with Golden Confetti Animation */
+    /* Main Background - White with Golden Dots */
     .stApp {
-        background: #FFFFFF;
+        background-color: #FFFFFF;
+        background-image: radial-gradient(circle, #D4AF37 1.5px, transparent 1.5px);
+        background-size: 30px 30px;
+        animation: backgroundMove 30s linear infinite;
+    }
+    
+    @keyframes backgroundMove {
+        0% { background-position: 0 0; }
+        100% { background-position: 30px 30px; }
+    }
+    
+    /* Ensure content is visible */
+    .main .block-container {
         position: relative;
-        overflow-x: hidden;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 20px;
+        max-width: 900px;
+        margin: 1rem auto;
     }
     
-    /* Animated Golden Confetti/Dots Background */
-    .stApp::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: 
-            radial-gradient(circle, #D4AF37 2px, transparent 2px),
-            radial-gradient(circle, #D4AF37 1.5px, transparent 1.5px),
-            radial-gradient(circle, #D4AF37 1px, transparent 1px);
-        background-size: 50px 50px, 30px 30px, 70px 70px;
-        background-position: 0 0, 25px 25px, 15px 60px;
-        animation: confettiMove 20s linear infinite;
-        pointer-events: none;
-        z-index: 0;
-        opacity: 0.3;
-    }
-    
-    @keyframes confettiMove {
-        0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(-100px) rotate(360deg); }
-    }
-    
-    /* Main Content Container */
-    .main-container {
-        position: relative;
-        z-index: 1;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
-    
-    /* Logo Styling */
-    .logo-container {
-        text-align: center;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
+    /* Logo */
     .logo-text {
         font-family: 'Playfair Display', serif;
         font-size: 2.5rem;
         color: #8B1538;
         font-weight: 700;
+        text-align: center;
         letter-spacing: 3px;
     }
     
@@ -84,52 +55,32 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
         font-size: 0.8rem;
         color: #D4AF37;
+        text-align: center;
         letter-spacing: 2px;
-        margin-top: 0.2rem;
     }
     
     /* Headings - Maroon */
-    h1, h2, h3, h4, h5, h6 {
+    h1, h2, h3 {
         color: #8B1538 !important;
         font-family: 'Playfair Display', serif;
     }
     
     /* Body Text - Black */
-    p, span, div, label {
+    p, div, span, label {
         color: #000000;
         font-family: 'Inter', sans-serif;
     }
     
-    /* Compact Cards */
-    .compact-card {
-        background: rgba(255, 255, 255, 0.95);
+    /* Cards */
+    .stCard {
+        background: #FFFFFF;
+        border: 2px solid #D4AF37;
         border-radius: 15px;
         padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(139, 21, 56, 0.1);
-        border: 2px solid #D4AF37;
-        margin: 0.5rem 0;
-    }
-    
-    /* Choice Cards */
-    .choice-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        padding: 1.5rem;
-        text-align: center;
-        border: 2px solid #D4AF37;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin: 0.5rem;
-        transition: all 0.3s;
-        cursor: pointer;
     }
     
-    .choice-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.15);
-        border-color: #8B1538;
-    }
-    
-    /* Buttons - Maroon with Gold */
+    /* Buttons */
     .stButton>button {
         background: #8B1538;
         color: #FFFFFF;
@@ -137,8 +88,6 @@ st.markdown("""
         border-radius: 25px;
         padding: 0.6rem 1.5rem;
         font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s;
         width: 100%;
     }
     
@@ -147,118 +96,16 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(139, 21, 56, 0.3);
     }
     
-    /* Input Fields */
+    /* Inputs */
     .stTextInput>div>div>input, .stSelectbox>div>div>select {
         border-radius: 8px;
         border: 2px solid #D4AF37;
         background: #FFFFFF;
         color: #000000;
-        padding: 0.6rem;
-        font-size: 0.9rem;
-    }
-    
-    /* Dashboard Grid */
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-    
-    .dashboard-item {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        padding: 1.2rem;
-        border: 2px solid #D4AF37;
-        text-align: center;
-        transition: all 0.3s;
-    }
-    
-    .dashboard-item:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 20px rgba(139, 21, 56, 0.15);
-    }
-    
-    .dashboard-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .dashboard-title {
-        color: #8B1538;
-        font-weight: 700;
-        font-size: 1rem;
-        margin-bottom: 0.3rem;
-    }
-    
-    /* Tabs Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(212, 175, 55, 0.1);
-        padding: 8px;
-        border-radius: 10px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: #FFFFFF;
-        border-radius: 8px;
-        padding: 8px 16px;
-        border: 2px solid transparent;
-        color: #000000;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: #8B1538 !important;
-        color: #FFFFFF !important;
-        border: 2px solid #D4AF37 !important;
-    }
-    
-    /* Progress Circle */
-    .progress-circle {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: conic-gradient(#8B1538 var(--progress), #E5E7EB 0deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-    }
-    
-    .progress-inner {
-        width: 65px;
-        height: 65px;
-        border-radius: 50%;
-        background: #FFFFFF;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: #8B1538;
-        font-size: 0.9rem;
-    }
-    
-    /* Compact Layout Utilities */
-    .compact-section {
-        margin: 0.5rem 0;
-    }
-    
-    .compact-row {
-        display: flex;
-        gap: 1rem;
-        margin: 0.5rem 0;
     }
     
     /* Hide Streamlit Elements */
     #MainMenu, footer, header {visibility: hidden;}
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .logo-text { font-size: 1.8rem; }
-        .dashboard-grid { grid-template-columns: 1fr; }
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -323,13 +170,9 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'admin_authenticated' not in st.session_state:
     st.session_state.admin_authenticated = False
-if 'current_tab' not in st.session_state:
-    st.session_state.current_tab = 'handbook'
 
-# ============== DEPARTMENT DATA ==============
 DEPARTMENT_CATEGORIES = ["Administrative", "Paramedical", "Nursing", "Clinical"]
 
-# ============== QUESTIONS (175) ==============
 QUESTIONS = [
     {"id": 1, "category": "Patient Safety", "question": "What is the primary goal of Patient Safety at Medanta?", 
      "options": ["Prevent harm to patients", "Increase revenue", "Reduce staff", "Expand facilities"]},
@@ -359,7 +202,6 @@ for i in range(6, 176):
     if i not in CORRECT_ANSWERS:
         CORRECT_ANSWERS[i] = "Follow standard protocol"
 
-# ============== FUNCTIONS ==============
 def calculate_score():
     correct = 0
     total = len(QUESTIONS)
@@ -403,76 +245,55 @@ def save_assessment_result(user_info):
     
     return result_data
 
-def get_user_progress(user_email):
-    data = load_data()
-    for user in data['users']:
-        if user.get('email') == user_email:
-            assessments = user.get('assessments', [])
-            if assessments:
-                latest = assessments[-1]
-                return latest['percentage'], len(assessments)
-    return 0, 0
-
 # ============== PAGES ==============
-def show_logo():
-    st.markdown("""
-    <div class="logo-container">
-        <div class="logo-text">🏥 MEDANTA</div>
-        <div class="logo-tagline">THE MEDICITY</div>
-    </div>
-    """, unsafe_allow_html=True)
-
 def show_landing():
-    show_logo()
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<div class="logo-tagline">THE MEDICITY</div>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <h1 style="text-align: center; color: #8B1538; font-family: Playfair Display, serif; font-size: 2rem; margin-bottom: 0.5rem;">
-        🙏 Namaste
-    </h1>
-    <p style="text-align: center; color: #000000; font-size: 1rem; margin-bottom: 1.5rem;">
-        Welcome to New Hire Induction Portal
-    </p>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
+    
+    st.markdown("<h1 style='text-align: center; color: #8B1538;'>🙏 Namaste</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #000000;'>Welcome to New Hire Induction Portal</p>", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
-        <div class="choice-card">
+        <div style="background: #FFFFFF; border: 2px solid #D4AF37; border-radius: 15px; padding: 1.5rem; text-align: center; margin: 0.5rem;">
             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🆕</div>
-            <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;">New Hire</div>
-            <div style="color: #000000; font-size: 0.85rem;">First time here? Register now</div>
+            <h3 style="color: #8B1538; margin: 0;">New Hire</h3>
+            <p style="color: #000000; font-size: 0.9rem;">First time here? Register now</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Register", key="new_hire_btn", use_container_width=True):
+        if st.button("Register", key="new_btn"):
             st.session_state.user_type = 'new'
             st.session_state.page = 'registration'
             st.rerun()
     
     with col2:
         st.markdown("""
-        <div class="choice-card">
+        <div style="background: #FFFFFF; border: 2px solid #D4AF37; border-radius: 15px; padding: 1.5rem; text-align: center; margin: 0.5rem;">
             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
-            <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;">Returning Employee</div>
-            <div style="color: #000000; font-size: 0.85rem;">Already registered? Login</div>
+            <h3 style="color: #8B1538; margin: 0;">Returning Employee</h3>
+            <p style="color: #000000; font-size: 0.9rem;">Already registered? Login</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Login", key="returning_btn", use_container_width=True):
+        if st.button("Login", key="return_btn"):
             st.session_state.user_type = 'returning'
             st.session_state.page = 'returning_login'
             st.rerun()
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        if st.button("🔐 Admin Portal", use_container_width=True):
+        if st.button("🔐 Admin Portal"):
             st.session_state.page = 'admin_login'
             st.rerun()
 
 def show_registration():
-    show_logo()
-    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">📝 New Hire Registration</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center;">📝 New Hire Registration</h2>', unsafe_allow_html=True)
     
-    with st.form("registration_form"):
+    with st.form("reg_form"):
         col1, col2 = st.columns(2)
         with col1:
             name = st.text_input("Name *", placeholder="Full Name")
@@ -485,7 +306,7 @@ def show_registration():
         with col1:
             dept_category = st.selectbox("Department Category *", ["Select"] + DEPARTMENT_CATEGORIES)
         with col2:
-            sub_department = st.text_input("Sub Department *", placeholder="e.g., Cardiology, HR, etc.")
+            sub_department = st.text_input("Sub Department *", placeholder="e.g., Cardiology")
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col1:
@@ -493,8 +314,7 @@ def show_registration():
                 st.session_state.page = 'landing'
                 st.rerun()
         with col3:
-            submitted = st.form_submit_button("Register →")
-            if submitted:
+            if st.form_submit_button("Register →"):
                 if name and email and mobile and dept_category != "Select" and sub_department:
                     existing_user = get_user_by_email(email)
                     if existing_user:
@@ -517,8 +337,8 @@ def show_registration():
                     st.error("Fill all required fields!")
 
 def show_returning_login():
-    show_logo()
-    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">👤 Returning Employee Login</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center;">👤 Returning Employee Login</h2>', unsafe_allow_html=True)
     
     login_method = st.radio("Login using:", ["Email Address", "Employee ID"], horizontal=True)
     
@@ -529,11 +349,11 @@ def show_returning_login():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
-        if st.button("← Back", use_container_width=True):
+        if st.button("← Back"):
             st.session_state.page = 'landing'
             st.rerun()
     with col3:
-        if st.button("Login →", use_container_width=True):
+        if st.button("Login →"):
             if login_method == "Email Address":
                 user = get_user_by_email(email) if email else None
             else:
@@ -548,93 +368,44 @@ def show_returning_login():
 
 def show_employee_dashboard():
     user = st.session_state.user
-    progress, attempts = get_user_progress(user.get('email', ''))
     
-    show_logo()
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
     
-    # Welcome & Progress
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.markdown(f'<h2 style="color: #8B1538; font-size: 1.3rem; margin: 0;">👋 Welcome, {user["name"]}</h2>', unsafe_allow_html=True)
-        st.markdown(f'<p style="color: #000000; font-size: 0.85rem; margin: 0;">{user.get("sub_department", "N/A")} | {user.get("department_category", "N/A")}</p>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div style="text-align: right;">
-            <div style="display: inline-block; text-align: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#8B1538 {progress*3.6}deg, #E5E7EB 0deg); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <div style="width: 50px; height: 50px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B1538; font-size: 0.8rem;">
-                        {progress:.0f}%
-                    </div>
-                </div>
-                <p style="font-size: 0.7rem; color: #000000; margin: 0.2rem 0 0 0;">Progress</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color: #8B1538; margin: 0;">👋 Welcome, {user["name"]}</h2>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color: #000000; margin: 0;">{user.get("sub_department", "N/A")} | {user.get("department_category", "N/A")}</p>', unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # Dashboard Grid
-    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin-bottom: 0.8rem;">📚 Learning Resources</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: #8B1538;">📚 Learning Resources</h3>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        <div class="dashboard-item" style="cursor: pointer;">
-            <div class="dashboard-icon">📖</div>
-            <div class="dashboard-title">Employee Handbook</div>
-            <div style="color: #000000; font-size: 0.8rem;">View digital handbook</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Open Handbook", key="handbook_btn", use_container_width=True):
-            st.session_state.current_tab = 'handbook'
-            st.session_state.page = 'resources'
+        if st.button("📖 Employee Handbook", use_container_width=True):
+            st.session_state.page = 'handbook'
             st.rerun()
-    
     with col2:
-        st.markdown("""
-        <div class="dashboard-item" style="cursor: pointer;">
-            <div class="dashboard-icon">🏥</div>
-            <div class="dashboard-title">JCI Handbook</div>
-            <div style="color: #000000; font-size: 0.8rem;">Joint Commission standards</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Open JCI Handbook", key="jci_btn", use_container_width=True):
-            st.session_state.current_tab = 'jci'
-            st.session_state.page = 'resources'
+        if st.button("🏥 JCI Handbook", use_container_width=True):
+            st.session_state.page = 'jci_handbook'
             st.rerun()
     
-    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin: 1rem 0 0.8rem 0;">🎯 Assessment</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: #8B1538; margin-top: 1rem;">🎯 Assessment</h3>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        <div class="dashboard-item" style="cursor: pointer;">
-            <div class="dashboard-icon">📝</div>
-            <div class="dashboard-title">Take Assessment</div>
-            <div style="color: #000000; font-size: 0.8rem;">175 questions | 70% to pass</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Start Assessment", key="assessment_btn", use_container_width=True):
+        if st.button("📝 Take Assessment", use_container_width=True):
             st.session_state.answers = {}
             st.session_state.current_question = 0
             st.session_state.submitted = False
             st.session_state.page = 'assessment'
             st.rerun()
-    
     with col2:
-        st.markdown("""
-        <div class="dashboard-item" style="cursor: pointer;">
-            <div class="dashboard-icon">📊</div>
-            <div class="dashboard-title">Report Card</div>
-            <div style="color: #000000; font-size: 0.8rem;">View results & certificate</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("View Report", key="report_btn", use_container_width=True):
+        if st.button("📊 Report Card", use_container_width=True):
             st.session_state.page = 'report_card'
             st.rerun()
     
-    # Progress Report Section
-    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin: 1rem 0 0.8rem 0;">📈 Progress Report</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: #8B1538; margin-top: 1rem;">📈 Progress Report</h3>', unsafe_allow_html=True)
     
     data = load_data()
     user_assessments = []
@@ -655,64 +426,43 @@ def show_employee_dashboard():
         with col4:
             st.metric("Best Score", f"{max(a['percentage'] for a in user_assessments):.1f}%")
     else:
-        st.info("No assessments taken yet. Start your first assessment!")
+        st.info("No assessments taken yet.")
     
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.user = None
         st.session_state.page = 'landing'
         st.rerun()
 
-def show_resources():
+def show_handbook():
     user = st.session_state.user
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538;">📖 Employee Handbook</h2>', unsafe_allow_html=True)
     
-    show_logo()
-    
-    # Back button
     if st.button("← Back to Dashboard", use_container_width=True):
         st.session_state.page = 'employee_dashboard'
         st.rerun()
     
-    # Tabs for different handbooks
-    tabs = st.tabs(["📖 Employee Handbook", "🏥 JCI Handbook"])
+    # Flipping Book Embed
+    flipping_book_url = "https://online.flippingbook.com/view/652486186/"
     
-    with tabs[0]:
-        st.markdown('<h2 style="color: #8B1538; font-size: 1.3rem;">Employee Handbook</h2>', unsafe_allow_html=True)
-        
-        # Flipping Book Embed
-        flipping_book_url = "https://online.flippingbook.com/view/652486186/"
-        
-        st.markdown(f"""
-        <div style="border: 3px solid #D4AF37; border-radius: 10px; overflow: hidden; margin: 1rem 0;">
-            <iframe src="{flipping_book_url}" 
-                    style="width: 100%; height: 600px; border: none;" 
-                    allowfullscreen>
-            </iframe>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.info("💡 **Tip:** Use the arrow buttons in the book viewer to navigate pages. You can also zoom and search within the document.")
-        
-        # Quick Links
-        st.markdown('<h4 style="color: #8B1538; font-size: 1rem; margin-top: 1rem;">Quick Links</h4>', unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown("[📋 Policies](#)")
-        with col2:
-            st.markdown("[👔 Dress Code](#)")
-        with col3:
-            st.markdown("[⚠️ Safety](#)")
+    st.markdown(f"""
+    <div style="border: 3px solid #D4AF37; border-radius: 10px; overflow: hidden;">
+        <iframe src="{flipping_book_url}" 
+                style="width: 100%; height: 500px; border: none;" 
+                allowfullscreen>
+        </iframe>
+    </div>
+    """, unsafe_allow_html=True)
+
+def show_jci_handbook():
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538;">🏥 JCI Handbook</h2>', unsafe_allow_html=True)
     
-    with tabs[1]:
-        st.markdown('<h2 style="color: #8B1538; font-size: 1.3rem;">JCI Handbook</h2>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div style="background: #FFFFFF; padding: 2rem; border-radius: 10px; border: 2px solid #D4AF37; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🏥</div>
-            <h3 style="color: #8B1538;">Joint Commission International Standards</h3>
-            <p style="color: #000000;">JCI accreditation standards for patient safety and quality of care.</p>
-            <p style="color: #6B7280; font-size: 0.9rem;">Content loading... Please contact HR for the JCI handbook.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    if st.button("← Back to Dashboard", use_container_width=True):
+        st.session_state.page = 'employee_dashboard'
+        st.rerun()
+    
+    st.info("JCI Handbook content will be loaded here.")
 
 def show_assessment():
     if st.session_state.submitted:
@@ -720,51 +470,45 @@ def show_assessment():
         return
     
     user = st.session_state.user
-    show_logo()
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
     
     total_questions = len(QUESTIONS)
     current = st.session_state.current_question + 1
     progress_percent = (current / total_questions) * 100
     
-    # Progress Bar
     st.progress(progress_percent / 100)
-    
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown(f'<p style="color: #000000; font-size: 0.9rem; margin: 0;">Question {current} of {total_questions}</p>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<p style="color: #8B1538; font-size: 0.9rem; margin: 0; text-align: right;">{progress_percent:.1f}% Complete</p>', unsafe_allow_html=True)
+    st.write(f"Question {current} of {total_questions} ({progress_percent:.1f}%)")
     
     q = QUESTIONS[st.session_state.current_question]
     
-    st.markdown(f'<p style="color: #D4AF37; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 0.5rem 0 0.2rem 0;">{q["category"]}</p>', unsafe_allow_html=True)
-    st.markdown(f'<h3 style="color: #000000; font-size: 1.1rem; margin-bottom: 1rem;">{q["id"]}. {q["question"]}</h3>', unsafe_allow_html=True)
+    st.markdown(f'<p style="color: #D4AF37; font-size: 0.8rem;">{q["category"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<h3 style="color: #000000;">{q["id"]}. {q["question"]}</h3>', unsafe_allow_html=True)
     
     selected_option = st.radio("Select your answer:", q['options'], key=f"q_{q['id']}", index=None)
     
     if selected_option:
         st.session_state.answers[q['id']] = selected_option
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.session_state.current_question > 0:
-            if st.button("← Previous", use_container_width=True):
+            if st.button("← Previous"):
                 st.session_state.current_question -= 1
                 st.rerun()
     with col2:
-        if st.button("Save & Exit", use_container_width=True):
+        if st.button("Save & Exit"):
             st.session_state.page = 'employee_dashboard'
             st.rerun()
     with col3:
         if st.session_state.current_question < total_questions - 1:
-            if st.button("Next →", use_container_width=True):
+            if st.button("Next →"):
                 if q['id'] in st.session_state.answers:
                     st.session_state.current_question += 1
                     st.rerun()
                 else:
                     st.warning("Select an answer!")
         else:
-            if st.button("Submit ✓", use_container_width=True):
+            if st.button("Submit ✓"):
                 if q['id'] in st.session_state.answers:
                     st.session_state.submitted = True
                     save_assessment_result(st.session_state.user)
@@ -776,7 +520,8 @@ def show_report_card():
     correct, total, percentage = calculate_score()
     user = st.session_state.user
     
-    show_logo()
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center;">📊 Report Card</h2>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -784,16 +529,12 @@ def show_report_card():
         status_text = "PASSED" if percentage >= 70 else "FAILED"
         
         st.markdown(f"""
-        <div style="background: #FFFFFF; padding: 1.5rem; border-radius: 15px; border: 3px solid #D4AF37; text-align: center; margin-bottom: 1rem;">
-            <div style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#8B1538 {percentage*3.6}deg, #E5E7EB 0deg); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <div style="width: 85px; height: 85px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
-                    <span style="font-size: 1.5rem; font-weight: bold; color: #8B1538;">{percentage:.0f}%</span>
-                </div>
-            </div>
-            <h2 style="color: #8B1538; margin: 0.5rem 0; font-size: 1.3rem;">{user['name']}</h2>
-            <p style="color: #000000; margin: 0; font-size: 0.9rem;">{user.get('sub_department', 'N/A')}</p>
-            <div style="margin-top: 0.8rem; padding: 0.5rem; background: {status_color}20; border-radius: 8px; border: 2px solid {status_color};">
-                <span style="color: {status_color}; font-weight: 700; font-size: 1.1rem;">{status_text}</span>
+        <div style="background: #FFFFFF; padding: 1.5rem; border-radius: 15px; border: 3px solid #D4AF37; text-align: center;">
+            <h1 style="color: #8B1538; font-size: 3rem; margin: 0;">{percentage:.0f}%</h1>
+            <h3 style="color: #000000; margin: 0.5rem 0;">{user['name']}</h3>
+            <p style="color: #000000; margin: 0;">{user.get('sub_department', 'N/A')}</p>
+            <div style="margin-top: 1rem; padding: 0.5rem; background: {status_color}20; border-radius: 8px; border: 2px solid {status_color};">
+                <span style="color: {status_color}; font-weight: 700;">{status_text}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -809,38 +550,20 @@ def show_report_card():
         st.metric("Score", f"{percentage:.1f}%")
     
     if percentage >= 70:
-        st.success("🎉 Congratulations! Download your certificate below.")
-        
-        cert_text = f"""
-CERTIFICATE OF COMPLETION
-----------------------------
-This certifies that
-
-{user['name']}
-
-has successfully completed the
-Medanta New Hire Induction Program
-
-Employee ID: {user.get('employee_id', 'N/A')}
-Department: {user.get('sub_department', 'N/A')}
-Score: {percentage:.1f}%
-Date: {datetime.now().strftime("%B %d, %Y")}
-Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
-"""
-        st.download_button("📥 Download Certificate", cert_text, 
-                          f"Medanta_Certificate_{user.get('employee_id', 'User')}.txt", 
-                          use_container_width=True)
+        st.success("🎉 Congratulations!")
+        cert_text = f"CERTIFICATE OF COMPLETION\n{'='*30}\nThis certifies that\n{user['name']}\nhas completed Medanta Induction\nScore: {percentage:.1f}%\nDate: {datetime.now().strftime('%B %d, %Y')}"
+        st.download_button("📥 Download Certificate", cert_text, f"Certificate_{user['name']}.txt")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("← Back to Dashboard", use_container_width=True):
+        if st.button("← Back to Dashboard"):
             st.session_state.page = 'employee_dashboard'
             st.session_state.submitted = False
             st.session_state.current_question = 0
             st.rerun()
     with col2:
         if percentage < 70:
-            if st.button("🔄 Retake Assessment", use_container_width=True):
+            if st.button("🔄 Retake"):
                 st.session_state.answers = {}
                 st.session_state.submitted = False
                 st.session_state.current_question = 0
@@ -848,19 +571,19 @@ Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
                 st.rerun()
 
 def show_admin_login():
-    show_logo()
-    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">🔐 Admin Portal</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center;">🔐 Admin Portal</h2>', unsafe_allow_html=True)
     
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
-        if st.button("← Back", use_container_width=True):
+        if st.button("← Back"):
             st.session_state.page = 'landing'
             st.rerun()
     with col3:
-        if st.button("Login", use_container_width=True):
+        if st.button("Login"):
             if username == "admin" and password == "medanta2024":
                 st.session_state.admin_authenticated = True
                 st.session_state.page = 'admin_dashboard'
@@ -874,8 +597,8 @@ def show_admin_dashboard():
         st.rerun()
         return
     
-    show_logo()
-    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="logo-text">🏥 MEDANTA</div>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center;">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
     
     data = load_data()
     results = load_results()
@@ -885,31 +608,22 @@ def show_admin_dashboard():
     passed = sum(1 for r in results if r['status'] == "Passed")
     avg_score = sum(r['percentage'] for r in results) / total_assessments if total_assessments > 0 else 0
     
-    # Summary Cards
     col1, col2, col3, col4 = st.columns(4)
-    metrics = [
-        ("Total Users", total_users, "👥"),
-        ("Assessments", total_assessments, "📝"),
-        ("Pass Rate", f"{(passed/total_assessments*100):.0f}%" if total_assessments > 0 else "0%", "✅"),
-        ("Avg Score", f"{avg_score:.1f}%", "📊")
-    ]
-    for i, (label, value, icon) in enumerate(metrics):
-        with [col1, col2, col3, col4][i]:
-            st.markdown(f"""
-            <div style="background: #FFFFFF; padding: 1rem; border-radius: 10px; border: 2px solid #D4AF37; text-align: center;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.2rem;">{icon}</div>
-                <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem;">{value}</div>
-                <div style="color: #000000; font-size: 0.75rem;">{label}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    with col1:
+        st.metric("Users", total_users)
+    with col2:
+        st.metric("Assessments", total_assessments)
+    with col3:
+        st.metric("Pass Rate", f"{(passed/total_assessments*100):.0f}%" if total_assessments > 0 else "0%")
+    with col4:
+        st.metric("Avg Score", f"{avg_score:.1f}%")
     
-    # Tabs
     tabs = st.tabs(["📋 Employees", "📊 Reports", "📈 Analytics"])
     
     with tabs[0]:
         if data['users']:
             users_df = pd.DataFrame(data['users'])
-            st.dataframe(users_df[['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department', 'registration_date']], use_container_width=True)
+            st.dataframe(users_df[['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department']], use_container_width=True)
             csv = users_df.to_csv(index=False)
             st.download_button("📥 Export CSV", csv, f"employees_{datetime.now().strftime('%Y%m%d')}.csv")
         else:
@@ -922,17 +636,13 @@ def show_admin_dashboard():
             csv = results_df.to_csv(index=False)
             st.download_button("📥 Export Results", csv, f"results_{datetime.now().strftime('%Y%m%d')}.csv")
         else:
-            st.info("No assessment results.")
+            st.info("No results.")
     
     with tabs[2]:
         if results:
             results_df = pd.DataFrame(results)
             dept_stats = results_df.groupby('department_category')['percentage'].mean().reset_index()
             st.bar_chart(dept_stats.set_index('department_category'))
-            
-            st.markdown("### Department Performance")
-            for _, row in dept_stats.iterrows():
-                st.markdown(f"**{row['department_category']}:** {row['percentage']:.1f}%")
     
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.admin_authenticated = False
@@ -946,7 +656,8 @@ def main():
         'registration': show_registration,
         'returning_login': show_returning_login,
         'employee_dashboard': show_employee_dashboard,
-        'resources': show_resources,
+        'handbook': show_handbook,
+        'jci_handbook': show_jci_handbook,
         'assessment': show_assessment,
         'report_card': show_report_card,
         'admin_login': show_admin_login,
