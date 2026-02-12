@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import json
-import base64
 from datetime import datetime
 import os
 
@@ -13,63 +12,244 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ============== CUSTOM CSS ==============
+# ============== CUSTOM CSS - CREAM, WHITE, GOLD, MAROON, GREY THEME ==============
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
     
+    /* Main Background - Cream to White Gradient */
     .main {
-        background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);
+        background: linear-gradient(135deg, #FAF7F0 0%, #FFFFFF 50%, #FDF8E8 100%);
         font-family: 'Inter', sans-serif;
     }
     
     .stApp {
-        background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);
+        background: linear-gradient(135deg, #FAF7F0 0%, #FFFFFF 50%, #FDF8E8 100%);
     }
     
+    /* Header Styling - Gold and Maroon */
     .welcome-text {
         font-family: 'Playfair Display', serif;
-        font-size: 3rem;
-        color: #D4AF37;
-        text-align: center;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        margin-bottom: 1rem;
-    }
-    
-    .namaste-text {
-        font-family: 'Playfair Display', serif;
-        font-size: 4rem;
+        font-size: 3.5rem;
         color: #8B1538;
         text-align: center;
         margin-bottom: 0.5rem;
+        font-weight: 700;
+        letter-spacing: 2px;
     }
     
+    .namaste-text {
+        font-family: 'Cinzel', serif;
+        font-size: 4.5rem;
+        color: #D4AF37;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        text-shadow: 2px 2px 4px rgba(139, 21, 56, 0.2);
+    }
+    
+    .subtitle-text {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.3rem;
+        color: #6B7280;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-weight: 300;
+        letter-spacing: 1px;
+    }
+    
+    /* Logo Styling */
+    .logo-container {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #FFFFFF 0%, #FDF8E8 100%);
+        border-radius: 20px;
+        border: 3px solid #D4AF37;
+        margin: 2rem auto;
+        max-width: 400px;
+        box-shadow: 0 10px 40px rgba(139, 21, 56, 0.15);
+    }
+    
+    .logo-icon {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .logo-text {
+        font-family: 'Cinzel', serif;
+        font-size: 3rem;
+        color: #8B1538;
+        font-weight: 700;
+        letter-spacing: 4px;
+        margin: 0;
+    }
+    
+    .logo-tagline {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        color: #D4AF37;
+        letter-spacing: 3px;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+    
+    /* Card Styling - White with Gold Border */
+    .info-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(139, 21, 56, 0.08);
+        border: 2px solid #D4AF37;
+        margin: 1rem 0;
+    }
+    
+    .login-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(139, 21, 56, 0.1);
+        border: 3px solid #D4AF37;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Button Styling - Maroon with Gold Border */
     .stButton>button {
         background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%);
-        color: white;
-        border: none;
+        color: #FFFFFF;
+        border: 2px solid #D4AF37;
         border-radius: 30px;
         padding: 0.8rem 2rem;
         font-weight: 600;
-        border: 2px solid #D4AF37;
+        font-size: 1rem;
+        transition: all 0.3s;
         width: 100%;
     }
     
     .stButton>button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(139, 21, 56, 0.3);
+        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.3);
+        background: linear-gradient(135deg, #A91D3A 0%, #8B1538 100%);
     }
     
+    /* Secondary Button - Gold with Maroon Text */
+    .secondary-btn {
+        background: linear-gradient(135deg, #FDF8E8 0%, #FFFFFF 100%) !important;
+        color: #8B1538 !important;
+        border: 2px solid #D4AF37 !important;
+    }
+    
+    /* Input Styling - Cream Background with Gold Border */
     .stTextInput>div>div>input, .stSelectbox>div>div>select {
         border-radius: 10px;
         border: 2px solid #D4AF37;
-        background: white;
+        background: #FAF7F0;
+        color: #374151;
         padding: 0.8rem;
+        font-size: 1rem;
     }
     
+    .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus {
+        border-color: #8B1538;
+        box-shadow: 0 0 0 3px rgba(139, 21, 56, 0.1);
+    }
+    
+    /* Labels - Grey Color */
+    .stTextInput label, .stSelectbox label {
+        color: #6B7280 !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    /* Progress Bar - Gold to Maroon */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #D4AF37 0%, #8B1538 100%);
+    }
+    
+    /* Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        background: rgba(212, 175, 55, 0.1);
+        padding: 10px;
+        border-radius: 15px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: #FFFFFF;
+        border-radius: 10px;
+        padding: 10px 20px;
+        border: 2px solid transparent;
+        color: #6B7280;
+        font-weight: 600;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%) !important;
+        color: #FFFFFF !important;
+        border: 2px solid #D4AF37 !important;
+    }
+    
+    /* Choice Cards */
+    .choice-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        border: 3px solid #D4AF37;
+        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.1);
+        margin: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .choice-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(139, 21, 56, 0.2);
+        border-color: #8B1538;
+    }
+    
+    .choice-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .choice-title {
+        color: #8B1538;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    .choice-desc {
+        color: #6B7280;
+        font-size: 1rem;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        color: #8B1538;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+        border-bottom: 3px solid #D4AF37;
+        padding-bottom: 1rem;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    /* Hide Streamlit Elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .welcome-text { font-size: 2rem; }
+        .namaste-text { font-size: 2.5rem; }
+        .logo-text { font-size: 2rem; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -174,7 +354,6 @@ QUESTIONS = [
      "options": ["Communication failure", "Equipment malfunction", "Staff shortage", "Patient non-compliance"]},
 ]
 
-# Add more questions to reach 175
 while len(QUESTIONS) < 175:
     idx = len(QUESTIONS) + 1
     cat = "Department Specific" if idx > 140 else "General"
@@ -243,26 +422,31 @@ def save_assessment_result(user_info):
     return result_data
 
 # ============== PAGES ==============
+def show_logo():
+    """Display Medanta Logo"""
+    st.markdown("""
+    <div style="text-align: center; padding: 1.5rem; margin: 1rem auto; max-width: 350px;">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🏥</div>
+        <h1 style="font-family: 'Cinzel', serif; font-size: 2.8rem; color: #8B1538; font-weight: 700; letter-spacing: 4px; margin: 0;">MEDANTA</h1>
+        <p style="font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #D4AF37; letter-spacing: 3px; margin-top: 0.3rem; font-weight: 500;">THE MEDICITY</p>
+    </div>
+    """, unsafe_allow_html=True)
+
 def show_landing():
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        try:
-            st.image("medanta_logo.png", width=300)
-        except:
-            st.markdown("<h1 style='text-align: center; color: #8B1538;'>🏥 MEDANTA</h1>", unsafe_allow_html=True)
+    show_logo()
     
     st.markdown('<h1 class="namaste-text">🙏 Namaste</h1>', unsafe_allow_html=True)
     st.markdown('<h2 class="welcome-text">Welcome to Medanta</h2>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #666; font-size: 1.2rem; margin-bottom: 3rem;">The Medicity - New Hire Induction Portal</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle-text">New Hire Induction Portal</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
-        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
-            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🆕</div>
-            <h3 style="color: #8B1538; margin-bottom: 0.5rem;">New Hire</h3>
-            <p style="color: #666;">First time here? Register and start your induction.</p>
+        <div class="choice-card">
+            <div class="choice-icon">🆕</div>
+            <div class="choice-title">New Hire</div>
+            <div class="choice-desc">First time here? Register and start your induction journey.</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("I'm a New Hire", key="new_hire_btn", use_container_width=True):
@@ -272,10 +456,10 @@ def show_landing():
     
     with col2:
         st.markdown("""
-        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
-            <div style="font-size: 3.5rem; margin-bottom: 1rem;">👤</div>
-            <h3 style="color: #8B1538; margin-bottom: 0.5rem;">Returning User</h3>
-            <p style="color: #666;">Already registered? Login to continue.</p>
+        <div class="choice-card">
+            <div class="choice-icon">👤</div>
+            <div class="choice-title">Returning User</div>
+            <div class="choice-desc">Already registered? Login to continue or view results.</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("I'm a Returning User", key="returning_btn", use_container_width=True):
@@ -283,7 +467,7 @@ def show_landing():
             st.session_state.page = 'returning_login'
             st.rerun()
     
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button("🔐 Admin Login", use_container_width=True):
@@ -291,26 +475,19 @@ def show_landing():
             st.rerun()
 
 def show_registration():
-    """SIMPLIFIED REGISTRATION - ONLY REQUIRED FIELDS"""
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">📝 New Hire Registration</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">📝 New Hire Registration</h2>', unsafe_allow_html=True)
     
     with st.container():
         with st.form("registration_form"):
-            # Row 1: Name and Email
             col1, col2 = st.columns(2)
             with col1:
                 name = st.text_input("Full Name *", placeholder="Enter your full name")
-            with col2:
-                email = st.text_input("Email Address *", placeholder="your.email@example.com")
-            
-            # Row 2: Mobile and Employee ID
-            col1, col2 = st.columns(2)
-            with col1:
                 mobile = st.text_input("Mobile Number *", placeholder="+91-XXXXXXXXXX")
             with col2:
+                email = st.text_input("Email Address *", placeholder="your.email@example.com")
                 employee_id = st.text_input("Employee ID (if allotted)", placeholder="e.g., MED2024001")
             
-            # Row 3: Department Category and Sub Department
             col1, col2 = st.columns(2)
             with col1:
                 dept_category = st.selectbox("Department Category *", 
@@ -349,8 +526,8 @@ def show_registration():
         st.rerun()
 
 def show_returning_login():
-    """SIMPLIFIED RETURNING USER LOGIN"""
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">👤 Returning User Login</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">👤 Returning User Login</h2>', unsafe_allow_html=True)
     
     with st.container():
         login_method = st.radio("Login using:", ["Email Address", "Employee ID"])
@@ -389,15 +566,28 @@ def show_returning_login():
 
 def show_user_dashboard():
     user = st.session_state.user
-    st.markdown(f'<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">👋 Welcome back, {user["name"]}!</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown(f'<h2 style="text-align: center; color: #8B1538; font-family: Playfair Display, serif; font-size: 2rem; margin-bottom: 1rem;">👋 Welcome back, {user["name"]}!</h2>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"**Employee ID:** {user.get('employee_id', 'N/A')}")
-        st.write(f"**Department:** {user.get('sub_department', 'N/A')}")
+        st.markdown(f"""
+        <div style="background: white; padding: 1.5rem; border-radius: 15px; border: 2px solid #D4AF37; margin-bottom: 1rem;">
+            <p style="color: #6B7280; margin: 0; font-size: 0.9rem;">Employee ID</p>
+            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('employee_id', 'N/A')}</p>
+            <p style="color: #6B7280; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Department</p>
+            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('sub_department', 'N/A')}</p>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.write(f"**Category:** {user.get('department_category', 'N/A')}")
-        st.write(f"**Email:** {user.get('email', 'N/A')}")
+        st.markdown(f"""
+        <div style="background: white; padding: 1.5rem; border-radius: 15px; border: 2px solid #D4AF37; margin-bottom: 1rem;">
+            <p style="color: #6B7280; margin: 0; font-size: 0.9rem;">Category</p>
+            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('department_category', 'N/A')}</p>
+            <p style="color: #6B7280; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Email</p>
+            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('email', 'N/A')}</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     data = load_data()
     user_assessments = []
@@ -407,10 +597,20 @@ def show_user_dashboard():
             break
     
     if user_assessments:
-        st.markdown("### 📊 Your Assessment History")
+        st.markdown('<h3 style="color: #8B1538; font-family: Playfair Display, serif; margin-top: 1.5rem;">📊 Assessment History</h3>', unsafe_allow_html=True)
         for assessment in reversed(user_assessments[-5:]):
-            status_color = "green" if assessment['status'] == "Passed" else "red"
-            st.markdown(f"**Date:** {assessment['date']} | **Score:** {assessment['score']}/{assessment['total']} ({assessment['percentage']:.1f}%) | **Status:** :{status_color}[{assessment['status']}]")
+            status_color = "#10B981" if assessment['status'] == "Passed" else "#EF4444"
+            st.markdown(f"""
+            <div style="background: white; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid {status_color}; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #6B7280; font-size: 0.9rem;">{assessment['date']}</span><br>
+                        <span style="color: #374151; font-weight: 500;">Score: {assessment['score']}/{assessment['total']} ({assessment['percentage']:.1f}%)</span>
+                    </div>
+                    <span style="color: {status_color}; font-weight: 700; font-size: 1.1rem;">{assessment['status']}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
         if user_assessments[-1]['percentage'] >= 70:
             st.success("🎉 You have already passed the induction program!")
@@ -437,17 +637,21 @@ def show_user_dashboard():
             st.rerun()
 
 def show_handbook():
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">📚 Employee Handbook</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">📚 Employee Handbook</h2>', unsafe_allow_html=True)
     
     tabs = st.tabs(["🏥 About Medanta", "📖 Policies", "🎥 Video Tour", "📞 Contacts"])
     
     with tabs[0]:
         st.header("About Medanta - The Medicity")
         st.write("Medanta is one of India's largest multi-super specialty medical institutes located in Gurgaon. Founded by Dr. Naresh Trehan, Medanta brings together outstanding doctors, scientists, and technologists to provide world-class healthcare.")
+        
         st.subheader("Our Vision")
         st.write("To create an integrated healthcare system that provides high-quality, affordable care to all sections of society.")
+        
         st.subheader("Our Mission")
         st.write("To deliver international standard healthcare through innovative, ethical, and patient-centric services.")
+        
         st.subheader("Core Values")
         st.markdown("""
         - **Patient First:** Every decision prioritizes patient welfare
@@ -512,7 +716,8 @@ def show_assessment():
         show_report_card()
         return
     
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">📝 Knowledge Assessment</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">📝 Knowledge Assessment</h2>', unsafe_allow_html=True)
     
     total_questions = len(QUESTIONS)
     current = st.session_state.current_question + 1
@@ -523,8 +728,8 @@ def show_assessment():
     
     q = QUESTIONS[st.session_state.current_question]
     
-    st.markdown(f"**Category:** {q['category']}")
-    st.markdown(f"### {q['id']}. {q['question']}")
+    st.markdown(f'<p style="color: #D4AF37; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">{q["category"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<h3 style="color: #374151; margin-bottom: 1.5rem;">{q["id"]}. {q["question"]}</h3>', unsafe_allow_html=True)
     
     selected_option = st.radio("Select your answer:", q['options'], key=f"q_{q['id']}", index=None)
     
@@ -556,31 +761,38 @@ def show_assessment():
 
 def show_report_card():
     correct, total, percentage = calculate_score()
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">📊 Your Report Card</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">📊 Your Report Card</h2>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.metric("Your Score", f"{percentage:.1f}%", f"{correct}/{total} correct")
-        if percentage >= 80:
-            st.success("🎉 Excellent! Passed with Distinction")
-        elif percentage >= 70:
-            st.success("✅ Passed")
-        elif percentage >= 50:
-            st.warning("⚠️ Needs Improvement")
-        else:
-            st.error("❌ Failed - Please Retake")
-        st.write(f"**Name:** {st.session_state.user['name']}")
-        st.write(f"**Department:** {st.session_state.user.get('sub_department', 'N/A')}")
+        score_color = "#10B981" if percentage >= 70 else "#EF4444"
+        st.markdown(f"""
+        <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; border: 3px solid #D4AF37; margin-bottom: 1rem;">
+            <div style="width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#8B1538 {percentage*3.6}deg, #F3F4F6 0deg); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 120px; height: 120px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 2.5rem; font-weight: bold; color: #8B1538;">{percentage:.0f}%</span>
+                </div>
+            </div>
+            <h3 style="color: #8B1538; margin-top: 1rem; font-family: Playfair Display, serif;">{st.session_state.user['name']}</h3>
+            <p style="color: #6B7280; margin: 0;">{st.session_state.user.get('sub_department', 'N/A')}</p>
+            <div style="margin-top: 1rem; padding: 0.8rem; background: {'#D1FAE5' if percentage >= 70 else '#FEE2E2'}; border-radius: 10px;">
+                <span style="color: {'#059669' if percentage >= 70 else '#DC2626'}; font-weight: 700; font-size: 1.1rem;">
+                    {'🎉 Passed' if percentage >= 70 else '❌ Failed'}
+                </span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total Questions", total)
+        st.metric("Total", total)
     with col2:
         st.metric("Correct", correct)
     with col3:
         st.metric("Wrong", total - correct)
     with col4:
-        st.metric("Percentage", f"{percentage:.1f}%")
+        st.metric("Score", f"{percentage:.1f}%")
     
     if percentage >= 70:
         st.success("🎉 Congratulations! You have successfully completed the Medanta Induction Program!")
@@ -619,7 +831,8 @@ Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
             st.rerun()
 
 def show_admin_login():
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">🔐 Admin Login</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">🔐 Admin Login</h2>', unsafe_allow_html=True)
     username = st.text_input("👤 Admin Username")
     password = st.text_input("🔑 Password", type="password")
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -642,7 +855,8 @@ def show_admin_dashboard():
         st.rerun()
         return
     
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
+    show_logo()
+    st.markdown('<h2 class="section-header">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
     
     data = load_data()
     results = load_results()
