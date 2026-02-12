@@ -3,6 +3,7 @@ import pandas as pd
 import json
 from datetime import datetime
 import os
+import base64
 
 # ============== PAGE CONFIGURATION ==============
 st.set_page_config(
@@ -12,243 +13,251 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ============== CUSTOM CSS - CREAM, WHITE, GOLD, MAROON, GREY THEME ==============
+# ============== CUSTOM CSS ==============
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
     
-    /* Main Background - Cream to White Gradient */
-    .main {
-        background: linear-gradient(135deg, #FAF7F0 0%, #FFFFFF 50%, #FDF8E8 100%);
-        font-family: 'Inter', sans-serif;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
     
+    /* White Background with Golden Confetti Animation */
     .stApp {
-        background: linear-gradient(135deg, #FAF7F0 0%, #FFFFFF 50%, #FDF8E8 100%);
+        background: #FFFFFF;
+        position: relative;
+        overflow-x: hidden;
     }
     
-    /* Header Styling - Gold and Maroon */
-    .welcome-text {
-        font-family: 'Playfair Display', serif;
-        font-size: 3.5rem;
-        color: #8B1538;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-        letter-spacing: 2px;
+    /* Animated Golden Confetti/Dots Background */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle, #D4AF37 2px, transparent 2px),
+            radial-gradient(circle, #D4AF37 1.5px, transparent 1.5px),
+            radial-gradient(circle, #D4AF37 1px, transparent 1px);
+        background-size: 50px 50px, 30px 30px, 70px 70px;
+        background-position: 0 0, 25px 25px, 15px 60px;
+        animation: confettiMove 20s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.3;
     }
     
-    .namaste-text {
-        font-family: 'Cinzel', serif;
-        font-size: 4.5rem;
-        color: #D4AF37;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        text-shadow: 2px 2px 4px rgba(139, 21, 56, 0.2);
+    @keyframes confettiMove {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(-100px) rotate(360deg); }
     }
     
-    .subtitle-text {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.3rem;
-        color: #6B7280;
-        text-align: center;
-        margin-bottom: 2rem;
-        font-weight: 300;
-        letter-spacing: 1px;
+    /* Main Content Container */
+    .main-container {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
     }
     
     /* Logo Styling */
     .logo-container {
         text-align: center;
-        padding: 2rem;
-        background: linear-gradient(135deg, #FFFFFF 0%, #FDF8E8 100%);
-        border-radius: 20px;
-        border: 3px solid #D4AF37;
-        margin: 2rem auto;
-        max-width: 400px;
-        box-shadow: 0 10px 40px rgba(139, 21, 56, 0.15);
-    }
-    
-    .logo-icon {
-        font-size: 4rem;
-        margin-bottom: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
     
     .logo-text {
-        font-family: 'Cinzel', serif;
-        font-size: 3rem;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
         color: #8B1538;
         font-weight: 700;
-        letter-spacing: 4px;
-        margin: 0;
+        letter-spacing: 3px;
     }
     
     .logo-tagline {
         font-family: 'Inter', sans-serif;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: #D4AF37;
-        letter-spacing: 3px;
-        margin-top: 0.5rem;
-        font-weight: 500;
+        letter-spacing: 2px;
+        margin-top: 0.2rem;
     }
     
-    /* Card Styling - White with Gold Border */
-    .info-card {
-        background: #FFFFFF;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 8px 32px rgba(139, 21, 56, 0.08);
+    /* Headings - Maroon */
+    h1, h2, h3, h4, h5, h6 {
+        color: #8B1538 !important;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    /* Body Text - Black */
+    p, span, div, label {
+        color: #000000;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Compact Cards */
+    .compact-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(139, 21, 56, 0.1);
         border: 2px solid #D4AF37;
-        margin: 1rem 0;
+        margin: 0.5rem 0;
     }
     
-    .login-card {
-        background: #FFFFFF;
-        border-radius: 20px;
-        padding: 2.5rem;
-        box-shadow: 0 10px 40px rgba(139, 21, 56, 0.1);
-        border: 3px solid #D4AF37;
-        max-width: 600px;
-        margin: 0 auto;
+    /* Choice Cards */
+    .choice-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 2px solid #D4AF37;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin: 0.5rem;
+        transition: all 0.3s;
+        cursor: pointer;
     }
     
-    /* Button Styling - Maroon with Gold Border */
+    .choice-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.15);
+        border-color: #8B1538;
+    }
+    
+    /* Buttons - Maroon with Gold */
     .stButton>button {
-        background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%);
+        background: #8B1538;
         color: #FFFFFF;
         border: 2px solid #D4AF37;
-        border-radius: 30px;
-        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        padding: 0.6rem 1.5rem;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
         transition: all 0.3s;
         width: 100%;
     }
     
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.3);
-        background: linear-gradient(135deg, #A91D3A 0%, #8B1538 100%);
+        background: #A91D3A;
+        box-shadow: 0 4px 15px rgba(139, 21, 56, 0.3);
     }
     
-    /* Secondary Button - Gold with Maroon Text */
-    .secondary-btn {
-        background: linear-gradient(135deg, #FDF8E8 0%, #FFFFFF 100%) !important;
-        color: #8B1538 !important;
-        border: 2px solid #D4AF37 !important;
-    }
-    
-    /* Input Styling - Cream Background with Gold Border */
+    /* Input Fields */
     .stTextInput>div>div>input, .stSelectbox>div>div>select {
-        border-radius: 10px;
+        border-radius: 8px;
         border: 2px solid #D4AF37;
-        background: #FAF7F0;
-        color: #374151;
-        padding: 0.8rem;
+        background: #FFFFFF;
+        color: #000000;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .dashboard-item {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 1.2rem;
+        border: 2px solid #D4AF37;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .dashboard-item:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(139, 21, 56, 0.15);
+    }
+    
+    .dashboard-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-title {
+        color: #8B1538;
+        font-weight: 700;
         font-size: 1rem;
-    }
-    
-    .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus {
-        border-color: #8B1538;
-        box-shadow: 0 0 0 3px rgba(139, 21, 56, 0.1);
-    }
-    
-    /* Labels - Grey Color */
-    .stTextInput label, .stSelectbox label {
-        color: #6B7280 !important;
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-    
-    /* Progress Bar - Gold to Maroon */
-    .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #D4AF37 0%, #8B1538 100%);
+        margin-bottom: 0.3rem;
     }
     
     /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
+        gap: 8px;
         background: rgba(212, 175, 55, 0.1);
-        padding: 10px;
-        border-radius: 15px;
+        padding: 8px;
+        border-radius: 10px;
     }
     
     .stTabs [data-baseweb="tab"] {
         background: #FFFFFF;
-        border-radius: 10px;
-        padding: 10px 20px;
+        border-radius: 8px;
+        padding: 8px 16px;
         border: 2px solid transparent;
-        color: #6B7280;
+        color: #000000;
         font-weight: 600;
+        font-size: 0.85rem;
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%) !important;
+        background: #8B1538 !important;
         color: #FFFFFF !important;
         border: 2px solid #D4AF37 !important;
     }
     
-    /* Choice Cards */
-    .choice-card {
+    /* Progress Circle */
+    .progress-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: conic-gradient(#8B1538 var(--progress), #E5E7EB 0deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .progress-inner {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
         background: #FFFFFF;
-        border-radius: 20px;
-        padding: 2.5rem 2rem;
-        text-align: center;
-        border: 3px solid #D4AF37;
-        box-shadow: 0 8px 25px rgba(139, 21, 56, 0.1);
-        margin: 1rem;
-        transition: all 0.3s;
-    }
-    
-    .choice-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(139, 21, 56, 0.2);
-        border-color: #8B1538;
-    }
-    
-    .choice-icon {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
-    }
-    
-    .choice-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
         color: #8B1538;
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-family: 'Playfair Display', serif;
+        font-size: 0.9rem;
     }
     
-    .choice-desc {
-        color: #6B7280;
-        font-size: 1rem;
+    /* Compact Layout Utilities */
+    .compact-section {
+        margin: 0.5rem 0;
     }
     
-    /* Section Headers */
-    .section-header {
-        color: #8B1538;
-        font-family: 'Playfair Display', serif;
-        font-size: 2rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 2rem;
-        border-bottom: 3px solid #D4AF37;
-        padding-bottom: 1rem;
-        display: inline-block;
-        width: 100%;
+    .compact-row {
+        display: flex;
+        gap: 1rem;
+        margin: 0.5rem 0;
     }
     
     /* Hide Streamlit Elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    #MainMenu, footer, header {visibility: hidden;}
     
     /* Mobile Responsive */
     @media (max-width: 768px) {
-        .welcome-text { font-size: 2rem; }
-        .namaste-text { font-size: 2.5rem; }
-        .logo-text { font-size: 2rem; }
+        .logo-text { font-size: 1.8rem; }
+        .dashboard-grid { grid-template-columns: 1fr; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -314,31 +323,11 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'admin_authenticated' not in st.session_state:
     st.session_state.admin_authenticated = False
+if 'current_tab' not in st.session_state:
+    st.session_state.current_tab = 'handbook'
 
 # ============== DEPARTMENT DATA ==============
-DEPARTMENT_CATEGORIES = {
-    "Administrative": [
-        "HR Department", "Finance & Accounts", "Administration", 
-        "Legal & Compliance", "Marketing", "IT Support", 
-        "Procurement", "Front Office"
-    ],
-    "Paramedical": [
-        "Laboratory Services", "Radiology & Imaging", "Physiotherapy",
-        "Respiratory Therapy", "Dialysis Unit", "Blood Bank", 
-        "Pharmacy", "Biomedical Engineering"
-    ],
-    "Clinical": [
-        "Cardiology", "Neurology", "Orthopedics", "Gastroenterology",
-        "Oncology", "Nephrology", "Pulmonology", "Endocrinology",
-        "Rheumatology", "Dermatology", "ENT", "Ophthalmology",
-        "Dental", "Emergency Medicine", "Critical Care", "Anesthesiology"
-    ],
-    "Nursing": [
-        "General Ward Nursing", "ICU Nursing", "OT Nursing",
-        "Emergency Nursing", "Pediatric Nursing", "Oncology Nursing",
-        "Cardiac Nursing", "Neuro Nursing", "Nursing Administration"
-    ]
-}
+DEPARTMENT_CATEGORIES = ["Administrative", "Paramedical", "Nursing", "Clinical"]
 
 # ============== QUESTIONS (175) ==============
 QUESTIONS = [
@@ -369,13 +358,6 @@ CORRECT_ANSWERS = {1: "Prevent harm to patients", 2: "Situation, Background, Ass
 for i in range(6, 176):
     if i not in CORRECT_ANSWERS:
         CORRECT_ANSWERS[i] = "Follow standard protocol"
-
-CONTACTS = [
-    {"name": "HR Department", "phone": "+91-124-4141414", "email": "hr@medanta.org", "icon": "👥"},
-    {"name": "IT Helpdesk", "phone": "+91-124-4141415", "email": "it.support@medanta.org", "icon": "💻"},
-    {"name": "Emergency", "phone": "108", "email": "emergency@medanta.org", "icon": "🚨"},
-    {"name": "Admin Office", "phone": "+91-124-4141416", "email": "admin@medanta.org", "icon": "🏢"},
-]
 
 # ============== FUNCTIONS ==============
 def calculate_score():
@@ -421,35 +403,48 @@ def save_assessment_result(user_info):
     
     return result_data
 
+def get_user_progress(user_email):
+    data = load_data()
+    for user in data['users']:
+        if user.get('email') == user_email:
+            assessments = user.get('assessments', [])
+            if assessments:
+                latest = assessments[-1]
+                return latest['percentage'], len(assessments)
+    return 0, 0
+
 # ============== PAGES ==============
 def show_logo():
-    """Display Medanta Logo"""
     st.markdown("""
-    <div style="text-align: center; padding: 1.5rem; margin: 1rem auto; max-width: 350px;">
-        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🏥</div>
-        <h1 style="font-family: 'Cinzel', serif; font-size: 2.8rem; color: #8B1538; font-weight: 700; letter-spacing: 4px; margin: 0;">MEDANTA</h1>
-        <p style="font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #D4AF37; letter-spacing: 3px; margin-top: 0.3rem; font-weight: 500;">THE MEDICITY</p>
+    <div class="logo-container">
+        <div class="logo-text">🏥 MEDANTA</div>
+        <div class="logo-tagline">THE MEDICITY</div>
     </div>
     """, unsafe_allow_html=True)
 
 def show_landing():
     show_logo()
     
-    st.markdown('<h1 class="namaste-text">🙏 Namaste</h1>', unsafe_allow_html=True)
-    st.markdown('<h2 class="welcome-text">Welcome to Medanta</h2>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle-text">New Hire Induction Portal</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <h1 style="text-align: center; color: #8B1538; font-family: Playfair Display, serif; font-size: 2rem; margin-bottom: 0.5rem;">
+        🙏 Namaste
+    </h1>
+    <p style="text-align: center; color: #000000; font-size: 1rem; margin-bottom: 1.5rem;">
+        Welcome to New Hire Induction Portal
+    </p>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
         <div class="choice-card">
-            <div class="choice-icon">🆕</div>
-            <div class="choice-title">New Hire</div>
-            <div class="choice-desc">First time here? Register and start your induction journey.</div>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🆕</div>
+            <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;">New Hire</div>
+            <div style="color: #000000; font-size: 0.85rem;">First time here? Register now</div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("I'm a New Hire", key="new_hire_btn", use_container_width=True):
+        if st.button("Register", key="new_hire_btn", use_container_width=True):
             st.session_state.user_type = 'new'
             st.session_state.page = 'registration'
             st.rerun()
@@ -457,52 +452,53 @@ def show_landing():
     with col2:
         st.markdown("""
         <div class="choice-card">
-            <div class="choice-icon">👤</div>
-            <div class="choice-title">Returning User</div>
-            <div class="choice-desc">Already registered? Login to continue or view results.</div>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
+            <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;">Returning Employee</div>
+            <div style="color: #000000; font-size: 0.85rem;">Already registered? Login</div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("I'm a Returning User", key="returning_btn", use_container_width=True):
+        if st.button("Login", key="returning_btn", use_container_width=True):
             st.session_state.user_type = 'returning'
             st.session_state.page = 'returning_login'
             st.rerun()
     
-    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        if st.button("🔐 Admin Login", use_container_width=True):
+        if st.button("🔐 Admin Portal", use_container_width=True):
             st.session_state.page = 'admin_login'
             st.rerun()
 
 def show_registration():
     show_logo()
-    st.markdown('<h2 class="section-header">📝 New Hire Registration</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">📝 New Hire Registration</h2>', unsafe_allow_html=True)
     
-    with st.container():
-        with st.form("registration_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                name = st.text_input("Full Name *", placeholder="Enter your full name")
-                mobile = st.text_input("Mobile Number *", placeholder="+91-XXXXXXXXXX")
-            with col2:
-                email = st.text_input("Email Address *", placeholder="your.email@example.com")
-                employee_id = st.text_input("Employee ID (if allotted)", placeholder="e.g., MED2024001")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                dept_category = st.selectbox("Department Category *", 
-                                             ["Select"] + list(DEPARTMENT_CATEGORIES.keys()))
-            with col2:
-                sub_department = st.selectbox("Sub Department *", 
-                                              ["Select"] + (DEPARTMENT_CATEGORIES.get(dept_category, []) if dept_category != "Select" else []))
-            
-            submitted = st.form_submit_button("Register & Continue →", use_container_width=True)
-            
+    with st.form("registration_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            name = st.text_input("Name *", placeholder="Full Name")
+            mobile = st.text_input("Mobile No *", placeholder="+91-XXXXXXXXXX")
+        with col2:
+            email = st.text_input("Email Address *", placeholder="email@example.com")
+            employee_id = st.text_input("Employee ID (if allotted)", placeholder="MED2024001")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            dept_category = st.selectbox("Department Category *", ["Select"] + DEPARTMENT_CATEGORIES)
+        with col2:
+            sub_department = st.text_input("Sub Department *", placeholder="e.g., Cardiology, HR, etc.")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col1:
+            if st.form_submit_button("← Back"):
+                st.session_state.page = 'landing'
+                st.rerun()
+        with col3:
+            submitted = st.form_submit_button("Register →")
             if submitted:
-                if name and email and mobile and dept_category != "Select" and sub_department != "Select":
+                if name and email and mobile and dept_category != "Select" and sub_department:
                     existing_user = get_user_by_email(email)
                     if existing_user:
-                        st.error("⚠️ This email is already registered! Use Returning User login.")
+                        st.error("Email already registered!")
                     else:
                         user_info = {
                             'name': name,
@@ -511,83 +507,134 @@ def show_registration():
                             'employee_id': employee_id if employee_id else "Pending",
                             'department_category': dept_category,
                             'sub_department': sub_department,
-                            'user_type': 'new_hire'
                         }
                         user_id = add_user(user_info)
                         user_info['user_id'] = user_id
                         st.session_state.user = user_info
-                        st.session_state.page = 'handbook'
+                        st.session_state.page = 'employee_dashboard'
                         st.rerun()
                 else:
-                    st.error("⚠️ Please fill all required fields!")
-    
-    if st.button("← Back", use_container_width=True):
-        st.session_state.page = 'landing'
-        st.rerun()
+                    st.error("Fill all required fields!")
 
 def show_returning_login():
     show_logo()
-    st.markdown('<h2 class="section-header">👤 Returning User Login</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">👤 Returning Employee Login</h2>', unsafe_allow_html=True)
     
-    with st.container():
-        login_method = st.radio("Login using:", ["Email Address", "Employee ID"])
-        
-        if login_method == "Email Address":
-            email = st.text_input("📧 Enter your registered email", placeholder="your.email@example.com")
-        else:
-            emp_id = st.text_input("🆔 Enter your Employee ID", placeholder="e.g., MED2024001")
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            if st.button("← Back", use_container_width=True):
-                st.session_state.page = 'landing'
+    login_method = st.radio("Login using:", ["Email Address", "Employee ID"], horizontal=True)
+    
+    if login_method == "Email Address":
+        email = st.text_input("Email Address", placeholder="your.email@example.com")
+    else:
+        emp_id = st.text_input("Employee ID", placeholder="MED2024001")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        if st.button("← Back", use_container_width=True):
+            st.session_state.page = 'landing'
+            st.rerun()
+    with col3:
+        if st.button("Login →", use_container_width=True):
+            if login_method == "Email Address":
+                user = get_user_by_email(email) if email else None
+            else:
+                user = get_user_by_employee_id(emp_id) if emp_id else None
+            
+            if user:
+                st.session_state.user = user
+                st.session_state.page = 'employee_dashboard'
                 st.rerun()
-        
-        with col3:
-            if st.button("Login →", use_container_width=True):
-                if login_method == "Email Address":
-                    if email:
-                        user = get_user_by_email(email)
-                        if user:
-                            st.session_state.user = user
-                            st.session_state.page = 'user_dashboard'
-                            st.rerun()
-                        else:
-                            st.error("⚠️ Email not found! Please register as New Hire.")
-                else:
-                    if emp_id:
-                        user = get_user_by_employee_id(emp_id)
-                        if user:
-                            st.session_state.user = user
-                            st.session_state.page = 'user_dashboard'
-                            st.rerun()
-                        else:
-                            st.error("⚠️ Employee ID not found! Please register as New Hire.")
+            else:
+                st.error("User not found!")
 
-def show_user_dashboard():
+def show_employee_dashboard():
     user = st.session_state.user
+    progress, attempts = get_user_progress(user.get('email', ''))
+    
     show_logo()
-    st.markdown(f'<h2 style="text-align: center; color: #8B1538; font-family: Playfair Display, serif; font-size: 2rem; margin-bottom: 1rem;">👋 Welcome back, {user["name"]}!</h2>', unsafe_allow_html=True)
+    
+    # Welcome & Progress
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown(f'<h2 style="color: #8B1538; font-size: 1.3rem; margin: 0;">👋 Welcome, {user["name"]}</h2>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color: #000000; font-size: 0.85rem; margin: 0;">{user.get("sub_department", "N/A")} | {user.get("department_category", "N/A")}</p>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div style="text-align: right;">
+            <div style="display: inline-block; text-align: center;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#8B1538 {progress*3.6}deg, #E5E7EB 0deg); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B1538; font-size: 0.8rem;">
+                        {progress:.0f}%
+                    </div>
+                </div>
+                <p style="font-size: 0.7rem; color: #000000; margin: 0.2rem 0 0 0;">Progress</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Dashboard Grid
+    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin-bottom: 0.8rem;">📚 Learning Resources</h3>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"""
-        <div style="background: white; padding: 1.5rem; border-radius: 15px; border: 2px solid #D4AF37; margin-bottom: 1rem;">
-            <p style="color: #6B7280; margin: 0; font-size: 0.9rem;">Employee ID</p>
-            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('employee_id', 'N/A')}</p>
-            <p style="color: #6B7280; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Department</p>
-            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('sub_department', 'N/A')}</p>
+        st.markdown("""
+        <div class="dashboard-item" style="cursor: pointer;">
+            <div class="dashboard-icon">📖</div>
+            <div class="dashboard-title">Employee Handbook</div>
+            <div style="color: #000000; font-size: 0.8rem;">View digital handbook</div>
         </div>
         """, unsafe_allow_html=True)
+        if st.button("Open Handbook", key="handbook_btn", use_container_width=True):
+            st.session_state.current_tab = 'handbook'
+            st.session_state.page = 'resources'
+            st.rerun()
+    
     with col2:
-        st.markdown(f"""
-        <div style="background: white; padding: 1.5rem; border-radius: 15px; border: 2px solid #D4AF37; margin-bottom: 1rem;">
-            <p style="color: #6B7280; margin: 0; font-size: 0.9rem;">Category</p>
-            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('department_category', 'N/A')}</p>
-            <p style="color: #6B7280; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Email</p>
-            <p style="color: #8B1538; font-weight: 600; margin: 0; font-size: 1.1rem;">{user.get('email', 'N/A')}</p>
+        st.markdown("""
+        <div class="dashboard-item" style="cursor: pointer;">
+            <div class="dashboard-icon">🏥</div>
+            <div class="dashboard-title">JCI Handbook</div>
+            <div style="color: #000000; font-size: 0.8rem;">Joint Commission standards</div>
         </div>
         """, unsafe_allow_html=True)
+        if st.button("Open JCI Handbook", key="jci_btn", use_container_width=True):
+            st.session_state.current_tab = 'jci'
+            st.session_state.page = 'resources'
+            st.rerun()
+    
+    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin: 1rem 0 0.8rem 0;">🎯 Assessment</h3>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div class="dashboard-item" style="cursor: pointer;">
+            <div class="dashboard-icon">📝</div>
+            <div class="dashboard-title">Take Assessment</div>
+            <div style="color: #000000; font-size: 0.8rem;">175 questions | 70% to pass</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Start Assessment", key="assessment_btn", use_container_width=True):
+            st.session_state.answers = {}
+            st.session_state.current_question = 0
+            st.session_state.submitted = False
+            st.session_state.page = 'assessment'
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div class="dashboard-item" style="cursor: pointer;">
+            <div class="dashboard-icon">📊</div>
+            <div class="dashboard-title">Report Card</div>
+            <div style="color: #000000; font-size: 0.8rem;">View results & certificate</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("View Report", key="report_btn", use_container_width=True):
+            st.session_state.page = 'report_card'
+            st.rerun()
+    
+    # Progress Report Section
+    st.markdown('<h3 style="color: #8B1538; font-size: 1.1rem; margin: 1rem 0 0.8rem 0;">📈 Progress Report</h3>', unsafe_allow_html=True)
     
     data = load_data()
     user_assessments = []
@@ -597,151 +644,117 @@ def show_user_dashboard():
             break
     
     if user_assessments:
-        st.markdown('<h3 style="color: #8B1538; font-family: Playfair Display, serif; margin-top: 1.5rem;">📊 Assessment History</h3>', unsafe_allow_html=True)
-        for assessment in reversed(user_assessments[-5:]):
-            status_color = "#10B981" if assessment['status'] == "Passed" else "#EF4444"
-            st.markdown(f"""
-            <div style="background: white; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid {status_color}; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="color: #6B7280; font-size: 0.9rem;">{assessment['date']}</span><br>
-                        <span style="color: #374151; font-weight: 500;">Score: {assessment['score']}/{assessment['total']} ({assessment['percentage']:.1f}%)</span>
-                    </div>
-                    <span style="color: {status_color}; font-weight: 700; font-size: 1.1rem;">{assessment['status']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        if user_assessments[-1]['percentage'] >= 70:
-            st.success("🎉 You have already passed the induction program!")
-        else:
-            st.warning("⚠️ You need to pass the assessment (70% or higher).")
+        latest = user_assessments[-1]
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Attempts", len(user_assessments))
+        with col2:
+            st.metric("Latest Score", f"{latest['percentage']:.1f}%")
+        with col3:
+            st.metric("Status", latest['status'])
+        with col4:
+            st.metric("Best Score", f"{max(a['percentage'] for a in user_assessments):.1f}%")
+    else:
+        st.info("No assessments taken yet. Start your first assessment!")
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col1:
-        if st.button("📚 Review Handbook", use_container_width=True):
-            st.session_state.page = 'handbook'
-            st.rerun()
-    with col2:
-        if st.button("📝 Take Assessment", use_container_width=True):
-            st.session_state.answers = {}
-            st.session_state.current_question = 0
-            st.session_state.submitted = False
-            st.session_state.page = 'assessment'
-            st.rerun()
-    with col3:
-        if st.button("🚪 Logout", use_container_width=True):
-            st.session_state.user = None
-            st.session_state.page = 'landing'
-            st.rerun()
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.user = None
+        st.session_state.page = 'landing'
+        st.rerun()
 
-def show_handbook():
-    show_logo()
-    st.markdown('<h2 class="section-header">📚 Employee Handbook</h2>', unsafe_allow_html=True)
+def show_resources():
+    user = st.session_state.user
     
-    tabs = st.tabs(["🏥 About Medanta", "📖 Policies", "🎥 Video Tour", "📞 Contacts"])
+    show_logo()
+    
+    # Back button
+    if st.button("← Back to Dashboard", use_container_width=True):
+        st.session_state.page = 'employee_dashboard'
+        st.rerun()
+    
+    # Tabs for different handbooks
+    tabs = st.tabs(["📖 Employee Handbook", "🏥 JCI Handbook"])
     
     with tabs[0]:
-        st.header("About Medanta - The Medicity")
-        st.write("Medanta is one of India's largest multi-super specialty medical institutes located in Gurgaon. Founded by Dr. Naresh Trehan, Medanta brings together outstanding doctors, scientists, and technologists to provide world-class healthcare.")
+        st.markdown('<h2 style="color: #8B1538; font-size: 1.3rem;">Employee Handbook</h2>', unsafe_allow_html=True)
         
-        st.subheader("Our Vision")
-        st.write("To create an integrated healthcare system that provides high-quality, affordable care to all sections of society.")
+        # Flipping Book Embed
+        flipping_book_url = "https://online.flippingbook.com/view/652486186/"
         
-        st.subheader("Our Mission")
-        st.write("To deliver international standard healthcare through innovative, ethical, and patient-centric services.")
+        st.markdown(f"""
+        <div style="border: 3px solid #D4AF37; border-radius: 10px; overflow: hidden; margin: 1rem 0;">
+            <iframe src="{flipping_book_url}" 
+                    style="width: 100%; height: 600px; border: none;" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.subheader("Core Values")
-        st.markdown("""
-        - **Patient First:** Every decision prioritizes patient welfare
-        - **Integrity:** Uncompromising ethical standards
-        - **Excellence:** Continuous pursuit of medical excellence
-        - **Compassion:** Treating every patient with empathy
-        - **Innovation:** Embracing cutting-edge technology
-        """)
-    
-    with tabs[1]:
-        st.header("Key Policies")
-        st.subheader("🔒 Confidentiality Policy")
-        st.write("All patient information is strictly confidential. Never discuss patient details in public areas or share on social media.")
-        st.subheader("⏰ Attendance Policy")
-        st.write("Standard working hours are 9 AM to 6 PM. Inform your supervisor 24 hours in advance for planned leaves.")
-        st.subheader("👔 Dress Code")
-        st.write("Professional attire is mandatory. Clinical staff must wear clean uniforms and ID badges at all times.")
-        st.subheader("⚠️ Safety Policy")
-        st.write("Report all incidents immediately. Your safety and patient safety are our top priorities.")
-    
-    with tabs[2]:
-        st.header("Virtual Tour of Medanta")
-        st.info("🎬 Virtual Tour Video - In production. Contact HR for physical facility tour.")
-        st.subheader("Key Facilities")
+        st.info("💡 **Tip:** Use the arrow buttons in the book viewer to navigate pages. You can also zoom and search within the document.")
+        
+        # Quick Links
+        st.markdown('<h4 style="color: #8B1538; font-size: 1rem; margin-top: 1rem;">Quick Links</h4>', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.write("🏥 Main Hospital")
-            st.write("🫀 Heart Institute")
+            st.markdown("[📋 Policies](#)")
         with col2:
-            st.write("🧠 Neurosciences")
-            st.write("🦴 Orthopedics")
+            st.markdown("[👔 Dress Code](#)")
         with col3:
-            st.write("🧪 Advanced Labs")
-            st.write("🍽️ Staff Cafeteria")
+            st.markdown("[⚠️ Safety](#)")
     
-    with tabs[3]:
-        st.header("Emergency & Key Contacts")
-        cols = st.columns(2)
-        for idx, contact in enumerate(CONTACTS):
-            with cols[idx % 2]:
-                st.subheader(f"{contact['icon']} {contact['name']}")
-                st.write(f"📞 **Phone:** {contact['phone']}")
-                st.write(f"✉️ **Email:** {contact['email']}")
-                st.markdown("---")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col1:
-        if st.button("← Back", use_container_width=True):
-            if st.session_state.user_type == 'returning':
-                st.session_state.page = 'user_dashboard'
-            else:
-                st.session_state.page = 'registration'
-            st.rerun()
-    with col3:
-        if st.button("Start Assessment →", use_container_width=True):
-            st.session_state.page = 'assessment'
-            st.rerun()
+    with tabs[1]:
+        st.markdown('<h2 style="color: #8B1538; font-size: 1.3rem;">JCI Handbook</h2>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="background: #FFFFFF; padding: 2rem; border-radius: 10px; border: 2px solid #D4AF37; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏥</div>
+            <h3 style="color: #8B1538;">Joint Commission International Standards</h3>
+            <p style="color: #000000;">JCI accreditation standards for patient safety and quality of care.</p>
+            <p style="color: #6B7280; font-size: 0.9rem;">Content loading... Please contact HR for the JCI handbook.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 def show_assessment():
     if st.session_state.submitted:
         show_report_card()
         return
     
+    user = st.session_state.user
     show_logo()
-    st.markdown('<h2 class="section-header">📝 Knowledge Assessment</h2>', unsafe_allow_html=True)
     
     total_questions = len(QUESTIONS)
     current = st.session_state.current_question + 1
-    progress = current / total_questions
+    progress_percent = (current / total_questions) * 100
     
-    st.progress(progress)
-    st.write(f"**Question {current} of {total_questions}**")
+    # Progress Bar
+    st.progress(progress_percent / 100)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown(f'<p style="color: #000000; font-size: 0.9rem; margin: 0;">Question {current} of {total_questions}</p>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<p style="color: #8B1538; font-size: 0.9rem; margin: 0; text-align: right;">{progress_percent:.1f}% Complete</p>', unsafe_allow_html=True)
     
     q = QUESTIONS[st.session_state.current_question]
     
-    st.markdown(f'<p style="color: #D4AF37; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">{q["category"]}</p>', unsafe_allow_html=True)
-    st.markdown(f'<h3 style="color: #374151; margin-bottom: 1.5rem;">{q["id"]}. {q["question"]}</h3>', unsafe_allow_html=True)
+    st.markdown(f'<p style="color: #D4AF37; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 0.5rem 0 0.2rem 0;">{q["category"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<h3 style="color: #000000; font-size: 1.1rem; margin-bottom: 1rem;">{q["id"]}. {q["question"]}</h3>', unsafe_allow_html=True)
     
     selected_option = st.radio("Select your answer:", q['options'], key=f"q_{q['id']}", index=None)
     
     if selected_option:
         st.session_state.answers[q['id']] = selected_option
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
         if st.session_state.current_question > 0:
             if st.button("← Previous", use_container_width=True):
                 st.session_state.current_question -= 1
                 st.rerun()
+    with col2:
+        if st.button("Save & Exit", use_container_width=True):
+            st.session_state.page = 'employee_dashboard'
+            st.rerun()
     with col3:
         if st.session_state.current_question < total_questions - 1:
             if st.button("Next →", use_container_width=True):
@@ -749,37 +762,38 @@ def show_assessment():
                     st.session_state.current_question += 1
                     st.rerun()
                 else:
-                    st.warning("⚠️ Please select an answer!")
+                    st.warning("Select an answer!")
         else:
-            if st.button("Submit Assessment ✓", use_container_width=True):
+            if st.button("Submit ✓", use_container_width=True):
                 if q['id'] in st.session_state.answers:
                     st.session_state.submitted = True
                     save_assessment_result(st.session_state.user)
                     st.rerun()
                 else:
-                    st.warning("⚠️ Please select an answer!")
+                    st.warning("Select an answer!")
 
 def show_report_card():
     correct, total, percentage = calculate_score()
+    user = st.session_state.user
+    
     show_logo()
-    st.markdown('<h2 class="section-header">📊 Your Report Card</h2>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        score_color = "#10B981" if percentage >= 70 else "#EF4444"
+        status_color = "#10B981" if percentage >= 70 else "#EF4444"
+        status_text = "PASSED" if percentage >= 70 else "FAILED"
+        
         st.markdown(f"""
-        <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px; border: 3px solid #D4AF37; margin-bottom: 1rem;">
-            <div style="width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#8B1538 {percentage*3.6}deg, #F3F4F6 0deg); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <div style="width: 120px; height: 120px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center;">
-                    <span style="font-size: 2.5rem; font-weight: bold; color: #8B1538;">{percentage:.0f}%</span>
+        <div style="background: #FFFFFF; padding: 1.5rem; border-radius: 15px; border: 3px solid #D4AF37; text-align: center; margin-bottom: 1rem;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#8B1538 {percentage*3.6}deg, #E5E7EB 0deg); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 85px; height: 85px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 1.5rem; font-weight: bold; color: #8B1538;">{percentage:.0f}%</span>
                 </div>
             </div>
-            <h3 style="color: #8B1538; margin-top: 1rem; font-family: Playfair Display, serif;">{st.session_state.user['name']}</h3>
-            <p style="color: #6B7280; margin: 0;">{st.session_state.user.get('sub_department', 'N/A')}</p>
-            <div style="margin-top: 1rem; padding: 0.8rem; background: {'#D1FAE5' if percentage >= 70 else '#FEE2E2'}; border-radius: 10px;">
-                <span style="color: {'#059669' if percentage >= 70 else '#DC2626'}; font-weight: 700; font-size: 1.1rem;">
-                    {'🎉 Passed' if percentage >= 70 else '❌ Failed'}
-                </span>
+            <h2 style="color: #8B1538; margin: 0.5rem 0; font-size: 1.3rem;">{user['name']}</h2>
+            <p style="color: #000000; margin: 0; font-size: 0.9rem;">{user.get('sub_department', 'N/A')}</p>
+            <div style="margin-top: 0.8rem; padding: 0.5rem; background: {status_color}20; border-radius: 8px; border: 2px solid {status_color};">
+                <span style="color: {status_color}; font-weight: 700; font-size: 1.1rem;">{status_text}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -795,53 +809,58 @@ def show_report_card():
         st.metric("Score", f"{percentage:.1f}%")
     
     if percentage >= 70:
-        st.success("🎉 Congratulations! You have successfully completed the Medanta Induction Program!")
+        st.success("🎉 Congratulations! Download your certificate below.")
+        
         cert_text = f"""
 CERTIFICATE OF COMPLETION
 ----------------------------
 This certifies that
-{st.session_state.user['name']}
+
+{user['name']}
+
 has successfully completed the
 Medanta New Hire Induction Program
 
-Employee ID: {st.session_state.user.get('employee_id', 'N/A')}
-Department: {st.session_state.user.get('sub_department', 'N/A')}
+Employee ID: {user.get('employee_id', 'N/A')}
+Department: {user.get('sub_department', 'N/A')}
 Score: {percentage:.1f}%
 Date: {datetime.now().strftime("%B %d, %Y")}
 Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
 """
-        st.download_button(label="📥 Download Certificate", data=cert_text, 
-                          file_name=f"Medanta_Certificate_{st.session_state.user.get('employee_id', 'User')}.txt", 
-                          mime="text/plain", use_container_width=True)
+        st.download_button("📥 Download Certificate", cert_text, 
+                          f"Medanta_Certificate_{user.get('employee_id', 'User')}.txt", 
+                          use_container_width=True)
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns(2)
     with col1:
         if st.button("← Back to Dashboard", use_container_width=True):
-            st.session_state.page = 'user_dashboard'
+            st.session_state.page = 'employee_dashboard'
             st.session_state.submitted = False
             st.session_state.current_question = 0
             st.rerun()
-    with col3:
-        if st.button("🏠 Return to Home", use_container_width=True):
-            st.session_state.page = 'landing'
-            st.session_state.user = None
-            st.session_state.answers = {}
-            st.session_state.current_question = 0
-            st.session_state.submitted = False
-            st.rerun()
+    with col2:
+        if percentage < 70:
+            if st.button("🔄 Retake Assessment", use_container_width=True):
+                st.session_state.answers = {}
+                st.session_state.submitted = False
+                st.session_state.current_question = 0
+                st.session_state.page = 'assessment'
+                st.rerun()
 
 def show_admin_login():
     show_logo()
-    st.markdown('<h2 class="section-header">🔐 Admin Login</h2>', unsafe_allow_html=True)
-    username = st.text_input("👤 Admin Username")
-    password = st.text_input("🔑 Password", type="password")
-    col1, col2, col3 = st.columns([1, 1, 1])
+    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">🔐 Admin Portal</h2>', unsafe_allow_html=True)
+    
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
         if st.button("← Back", use_container_width=True):
             st.session_state.page = 'landing'
             st.rerun()
     with col3:
-        if st.button("Login →", use_container_width=True):
+        if st.button("Login", use_container_width=True):
             if username == "admin" and password == "medanta2024":
                 st.session_state.admin_authenticated = True
                 st.session_state.page = 'admin_dashboard'
@@ -856,7 +875,7 @@ def show_admin_dashboard():
         return
     
     show_logo()
-    st.markdown('<h2 class="section-header">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #8B1538; text-align: center; font-size: 1.5rem; margin-bottom: 1rem;">📊 Admin Dashboard</h2>', unsafe_allow_html=True)
     
     data = load_data()
     results = load_results()
@@ -866,41 +885,54 @@ def show_admin_dashboard():
     passed = sum(1 for r in results if r['status'] == "Passed")
     avg_score = sum(r['percentage'] for r in results) / total_assessments if total_assessments > 0 else 0
     
+    # Summary Cards
     col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Total Users", total_users)
-    with col2:
-        st.metric("Assessments", total_assessments)
-    with col3:
-        st.metric("Avg Score", f"{avg_score:.1f}%")
-    with col4:
-        st.metric("Pass Rate", f"{(passed/total_assessments*100):.1f}%" if total_assessments > 0 else "0%")
+    metrics = [
+        ("Total Users", total_users, "👥"),
+        ("Assessments", total_assessments, "📝"),
+        ("Pass Rate", f"{(passed/total_assessments*100):.0f}%" if total_assessments > 0 else "0%", "✅"),
+        ("Avg Score", f"{avg_score:.1f}%", "📊")
+    ]
+    for i, (label, value, icon) in enumerate(metrics):
+        with [col1, col2, col3, col4][i]:
+            st.markdown(f"""
+            <div style="background: #FFFFFF; padding: 1rem; border-radius: 10px; border: 2px solid #D4AF37; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.2rem;">{icon}</div>
+                <div style="color: #8B1538; font-weight: 700; font-size: 1.1rem;">{value}</div>
+                <div style="color: #000000; font-size: 0.75rem;">{label}</div>
+            </div>
+            """, unsafe_allow_html=True)
     
-    tabs = st.tabs(["📋 All Users", "📊 Results", "📈 Analytics"])
+    # Tabs
+    tabs = st.tabs(["📋 Employees", "📊 Reports", "📈 Analytics"])
     
     with tabs[0]:
         if data['users']:
             users_df = pd.DataFrame(data['users'])
-            st.dataframe(users_df[['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department']], use_container_width=True)
+            st.dataframe(users_df[['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department', 'registration_date']], use_container_width=True)
             csv = users_df.to_csv(index=False)
-            st.download_button("📥 Download Users CSV", csv, f"medanta_users_{datetime.now().strftime('%Y%m%d')}.csv", "text/csv")
+            st.download_button("📥 Export CSV", csv, f"employees_{datetime.now().strftime('%Y%m%d')}.csv")
         else:
-            st.info("No users registered yet.")
+            st.info("No employees registered.")
     
     with tabs[1]:
         if results:
             results_df = pd.DataFrame(results)
             st.dataframe(results_df[['date', 'name', 'employee_id', 'department_category', 'score', 'total', 'percentage', 'status']], use_container_width=True)
             csv = results_df.to_csv(index=False)
-            st.download_button("📥 Download Results CSV", csv, f"medanta_results_{datetime.now().strftime('%Y%m%d')}.csv", "text/csv")
+            st.download_button("📥 Export Results", csv, f"results_{datetime.now().strftime('%Y%m%d')}.csv")
         else:
-            st.info("No results yet.")
+            st.info("No assessment results.")
     
     with tabs[2]:
         if results:
             results_df = pd.DataFrame(results)
             dept_stats = results_df.groupby('department_category')['percentage'].mean().reset_index()
             st.bar_chart(dept_stats.set_index('department_category'))
+            
+            st.markdown("### Department Performance")
+            for _, row in dept_stats.iterrows():
+                st.markdown(f"**{row['department_category']}:** {row['percentage']:.1f}%")
     
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.admin_authenticated = False
@@ -909,24 +941,20 @@ def show_admin_dashboard():
 
 # ============== MAIN ==============
 def main():
-    if st.session_state.page == 'landing':
-        show_landing()
-    elif st.session_state.page == 'registration':
-        show_registration()
-    elif st.session_state.page == 'returning_login':
-        show_returning_login()
-    elif st.session_state.page == 'user_dashboard':
-        show_user_dashboard()
-    elif st.session_state.page == 'handbook':
-        show_handbook()
-    elif st.session_state.page == 'assessment':
-        show_assessment()
-    elif st.session_state.page == 'admin_login':
-        show_admin_login()
-    elif st.session_state.page == 'admin_dashboard':
-        show_admin_dashboard()
-    else:
-        show_landing()
+    pages = {
+        'landing': show_landing,
+        'registration': show_registration,
+        'returning_login': show_returning_login,
+        'employee_dashboard': show_employee_dashboard,
+        'resources': show_resources,
+        'assessment': show_assessment,
+        'report_card': show_report_card,
+        'admin_login': show_admin_login,
+        'admin_dashboard': show_admin_dashboard
+    }
+    
+    current_page = st.session_state.get('page', 'landing')
+    pages.get(current_page, show_landing)()
 
 if __name__ == "__main__":
     main()
