@@ -27,7 +27,6 @@ st.markdown("""
         background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);
     }
     
-    /* Header Styling */
     .welcome-text {
         font-family: 'Playfair Display', serif;
         font-size: 3rem;
@@ -45,36 +44,6 @@ st.markdown("""
         margin-bottom: 0.5rem;
     }
     
-    /* Card Styling */
-    .info-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 8px 32px rgba(139, 21, 56, 0.1);
-        border: 2px solid #D4AF37;
-        margin: 1rem 0;
-    }
-    
-    .login-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2.5rem;
-        box-shadow: 0 10px 40px rgba(139, 21, 56, 0.15);
-        border: 3px solid #D4AF37;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    
-    .question-card {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border-left: 5px solid #8B1538;
-    }
-    
-    /* Button Styling */
     .stButton>button {
         background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%);
         color: white;
@@ -82,7 +51,6 @@ st.markdown("""
         border-radius: 30px;
         padding: 0.8rem 2rem;
         font-weight: 600;
-        transition: all 0.3s;
         border: 2px solid #D4AF37;
         width: 100%;
     }
@@ -92,138 +60,44 @@ st.markdown("""
         box-shadow: 0 8px 20px rgba(139, 21, 56, 0.3);
     }
     
-    /* Input Styling */
-    .stTextInput>div>div>input, .stSelectbox>div>div>select, .stNumberInput>div>div>input {
+    .stTextInput>div>div>input, .stSelectbox>div>div>select {
         border-radius: 10px;
         border: 2px solid #D4AF37;
         background: white;
         padding: 0.8rem;
     }
     
-    /* Progress Bar */
-    .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #8B1538 0%, #D4AF37 100%);
-    }
-    
-    /* Tabs Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background: rgba(139, 21, 56, 0.05);
-        padding: 10px;
-        border-radius: 15px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: white;
-        border-radius: 10px;
-        padding: 10px 20px;
-        border: 2px solid transparent;
-        color: #8B1538;
-        font-weight: 600;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%) !important;
-        color: white !important;
-        border: 2px solid #D4AF37 !important;
-    }
-    
-    /* Report Card */
-    .report-card {
-        background: linear-gradient(135deg, #ffffff 0%, #faf8f5 100%);
-        border: 3px solid #D4AF37;
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-    }
-    
-    .score-circle {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: conic-gradient(#8B1538 var(--score-deg), #f0f0f0 0deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        position: relative;
-    }
-    
-    .score-inner {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #8B1538;
-    }
-    
-    /* Choice Cards */
-    .choice-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-        border: 3px solid transparent;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin: 1rem;
-    }
-    
-    .choice-card:hover {
-        border-color: #D4AF37;
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(139, 21, 56, 0.2);
-    }
-    
-    /* Hide Streamlit Elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .welcome-text { font-size: 2rem; }
-        .namaste-text { font-size: 2.5rem; }
-        .info-card { padding: 1rem; }
-        .login-card { padding: 1.5rem; }
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# ============== DATA STORAGE SETUP ==============
+# ============== DATA STORAGE ==============
 DATA_FILE = "user_data.json"
 RESULTS_FILE = "assessment_results.json"
 
 def load_data():
-    """Load all user data"""
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r') as f:
             return json.load(f)
     return {"users": [], "assessments": []}
 
 def save_data(data):
-    """Save all user data"""
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
 def load_results():
-    """Load assessment results"""
     if os.path.exists(RESULTS_FILE):
         with open(RESULTS_FILE, 'r') as f:
             return json.load(f)
     return []
 
 def save_results(results):
-    """Save assessment results"""
     with open(RESULTS_FILE, 'w') as f:
         json.dump(results, f, indent=4)
 
 def add_user(user_info):
-    """Add new user to database"""
     data = load_data()
     user_info['registration_date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     user_info['user_id'] = f"MED{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -232,7 +106,6 @@ def add_user(user_info):
     return user_info['user_id']
 
 def get_user_by_email(email):
-    """Get user by email"""
     data = load_data()
     for user in data['users']:
         if user['email'].lower() == email.lower():
@@ -240,14 +113,13 @@ def get_user_by_email(email):
     return None
 
 def get_user_by_employee_id(emp_id):
-    """Get user by employee ID"""
     data = load_data()
     for user in data['users']:
         if user.get('employee_id') == emp_id:
             return user
     return None
 
-# ============== SESSION STATE INITIALIZATION ==============
+# ============== SESSION STATE ==============
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
 if 'user' not in st.session_state:
@@ -266,66 +138,37 @@ if 'admin_authenticated' not in st.session_state:
 # ============== DEPARTMENT DATA ==============
 DEPARTMENT_CATEGORIES = {
     "Administrative": [
-        "HR Department",
-        "Finance & Accounts",
-        "Administration",
-        "Legal & Compliance",
-        "Marketing & Communications",
-        "IT Support",
-        "Procurement",
-        "Front Office"
+        "HR Department", "Finance & Accounts", "Administration", 
+        "Legal & Compliance", "Marketing", "IT Support", 
+        "Procurement", "Front Office"
     ],
     "Paramedical": [
-        "Laboratory Services",
-        "Radiology & Imaging",
-        "Physiotherapy",
-        "Respiratory Therapy",
-        "Dialysis Unit",
-        "Blood Bank",
-        "Pharmacy",
-        "Biomedical Engineering"
+        "Laboratory Services", "Radiology & Imaging", "Physiotherapy",
+        "Respiratory Therapy", "Dialysis Unit", "Blood Bank", 
+        "Pharmacy", "Biomedical Engineering"
     ],
     "Clinical": [
-        "Cardiology",
-        "Neurology",
-        "Orthopedics",
-        "Gastroenterology",
-        "Oncology",
-        "Nephrology",
-        "Pulmonology",
-        "Endocrinology",
-        "Rheumatology",
-        "Dermatology",
-        "ENT",
-        "Ophthalmology",
-        "Dental",
-        "Emergency Medicine",
-        "Critical Care",
-        "Anesthesiology"
+        "Cardiology", "Neurology", "Orthopedics", "Gastroenterology",
+        "Oncology", "Nephrology", "Pulmonology", "Endocrinology",
+        "Rheumatology", "Dermatology", "ENT", "Ophthalmology",
+        "Dental", "Emergency Medicine", "Critical Care", "Anesthesiology"
     ],
     "Nursing": [
-        "General Ward Nursing",
-        "ICU Nursing",
-        "OT Nursing",
-        "Emergency Nursing",
-        "Pediatric Nursing",
-        "Oncology Nursing",
-        "Cardiac Nursing",
-        "Neuro Nursing",
-        "Nursing Administration",
-        "Nursing Education"
+        "General Ward Nursing", "ICU Nursing", "OT Nursing",
+        "Emergency Nursing", "Pediatric Nursing", "Oncology Nursing",
+        "Cardiac Nursing", "Neuro Nursing", "Nursing Administration"
     ]
 }
 
-# ============== QUESTIONS DATA ==============
+# ============== QUESTIONS (175) ==============
 QUESTIONS = [
     {"id": 1, "category": "Patient Safety", "question": "What is the primary goal of Patient Safety at Medanta?", 
      "options": ["Prevent harm to patients", "Increase revenue", "Reduce staff", "Expand facilities"]},
-    {"id": 2, "category": "Patient Safety", "question": "What does SBAR stand for in healthcare communication?",
+    {"id": 2, "category": "Patient Safety", "question": "What does SBAR stand for?",
      "options": ["Situation, Background, Assessment, Recommendation", "Standard, Basic, Advanced, Review", "Safety, Benefits, Assessment, Results", "System, Background, Analysis, Report"]},
-    {"id": 3, "category": "Patient Safety", "question": "What is the correct hand hygiene duration using soap and water?",
+    {"id": 3, "category": "Patient Safety", "question": "What is the correct hand hygiene duration?",
      "options": ["40-60 seconds", "10-15 seconds", "20-30 seconds", "5-10 seconds"]},
-    {"id": 4, "category": "Patient Safety", "question": "What color code indicates a fire emergency in hospital?",
+    {"id": 4, "category": "Patient Safety", "question": "What color code indicates a fire emergency?",
      "options": ["Code Red", "Code Blue", "Code Pink", "Code Yellow"]},
     {"id": 5, "category": "Patient Safety", "question": "What is the most common cause of medication errors?",
      "options": ["Communication failure", "Equipment malfunction", "Staff shortage", "Patient non-compliance"]},
@@ -338,36 +181,25 @@ while len(QUESTIONS) < 175:
     QUESTIONS.append({
         "id": idx,
         "category": cat,
-        "question": f"Question {idx}: Standard Medanta protocol and procedure compliance?",
+        "question": f"Question {idx}: Standard Medanta protocol compliance?",
         "options": ["Follow standard protocol", "Ignore protocol", "Modify as needed", "Ask colleague"]
     })
 
-# ============== CORRECT ANSWERS KEY ==============
-CORRECT_ANSWERS = {
-    1: "Prevent harm to patients",
-    2: "Situation, Background, Assessment, Recommendation",
-    3: "40-60 seconds",
-    4: "Code Red",
-    5: "Communication failure",
-}
-
-# Default correct answers for remaining questions
+CORRECT_ANSWERS = {1: "Prevent harm to patients", 2: "Situation, Background, Assessment, Recommendation", 
+                   3: "40-60 seconds", 4: "Code Red", 5: "Communication failure"}
 for i in range(6, 176):
     if i not in CORRECT_ANSWERS:
         CORRECT_ANSWERS[i] = "Follow standard protocol"
 
-# ============== CONTACT INFORMATION ==============
 CONTACTS = [
     {"name": "HR Department", "phone": "+91-124-4141414", "email": "hr@medanta.org", "icon": "👥"},
     {"name": "IT Helpdesk", "phone": "+91-124-4141415", "email": "it.support@medanta.org", "icon": "💻"},
-    {"name": "Emergency", "phone": "108 / 102", "email": "emergency@medanta.org", "icon": "🚨"},
+    {"name": "Emergency", "phone": "108", "email": "emergency@medanta.org", "icon": "🚨"},
     {"name": "Admin Office", "phone": "+91-124-4141416", "email": "admin@medanta.org", "icon": "🏢"},
 ]
 
 # ============== FUNCTIONS ==============
-
 def calculate_score():
-    """Calculate assessment score"""
     correct = 0
     total = len(QUESTIONS)
     for q in QUESTIONS:
@@ -378,7 +210,6 @@ def calculate_score():
     return correct, total, (correct/total)*100
 
 def save_assessment_result(user_info):
-    """Save assessment results permanently"""
     correct, total, percentage = calculate_score()
     result_data = {
         "result_id": f"RES{datetime.now().strftime('%Y%m%d%H%M%S')}",
@@ -411,16 +242,13 @@ def save_assessment_result(user_info):
     
     return result_data
 
-# ============== PAGE FUNCTIONS ==============
-
+# ============== PAGES ==============
 def show_landing():
-    """Show landing page with choices"""
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         try:
             st.image("medanta_logo.png", width=300)
         except:
-            st.title("🏥 MEDANTA")
             st.markdown("<h1 style='text-align: center; color: #8B1538;'>🏥 MEDANTA</h1>", unsafe_allow_html=True)
     
     st.markdown('<h1 class="namaste-text">🙏 Namaste</h1>', unsafe_allow_html=True)
@@ -431,10 +259,10 @@ def show_landing():
     
     with col1:
         st.markdown("""
-        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; border: 3px solid transparent; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
+        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
             <div style="font-size: 3.5rem; margin-bottom: 1rem;">🆕</div>
             <h3 style="color: #8B1538; margin-bottom: 0.5rem;">New Hire</h3>
-            <p style="color: #666;">First time here? Register and start your induction journey.</p>
+            <p style="color: #666;">First time here? Register and start your induction.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("I'm a New Hire", key="new_hire_btn", use_container_width=True):
@@ -444,10 +272,10 @@ def show_landing():
     
     with col2:
         st.markdown("""
-        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; border: 3px solid transparent; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
+        <div style="background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 1rem;">
             <div style="font-size: 3.5rem; margin-bottom: 1rem;">👤</div>
             <h3 style="color: #8B1538; margin-bottom: 0.5rem;">Returning User</h3>
-            <p style="color: #666;">Already registered? Login to continue or view your results.</p>
+            <p style="color: #666;">Already registered? Login to continue.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("I'm a Returning User", key="returning_btn", use_container_width=True):
@@ -463,63 +291,41 @@ def show_landing():
             st.rerun()
 
 def show_registration():
-    """Show new hire registration form"""
+    """SIMPLIFIED REGISTRATION - ONLY REQUIRED FIELDS"""
     st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">📝 New Hire Registration</h2>', unsafe_allow_html=True)
     
     with st.container():
         with st.form("registration_form"):
-            st.markdown("### 👤 Personal Information")
-            
+            # Row 1: Name and Email
             col1, col2 = st.columns(2)
             with col1:
                 name = st.text_input("Full Name *", placeholder="Enter your full name")
+            with col2:
                 email = st.text_input("Email Address *", placeholder="your.email@example.com")
             
-            with col2:
-                mobile = st.text_input("Mobile Number *", placeholder="+91-XXXXXXXXXX")
-                employee_id = st.text_input("Employee ID (if already allotted)", placeholder="e.g., MED2024001")
-            
-            st.markdown("### 🏥 Department Information")
-            
-            dept_category = st.selectbox("Department Category *", 
-                                         ["Select Category"] + list(DEPARTMENT_CATEGORIES.keys()))
-            
-            sub_department = st.selectbox("Sub Department *", 
-                                          ["Select Sub Department"] + (DEPARTMENT_CATEGORIES.get(dept_category, []) if dept_category != "Select Category" else []))
-            
-            st.markdown("### 📋 Additional Information")
-            
+            # Row 2: Mobile and Employee ID
             col1, col2 = st.columns(2)
             with col1:
-                designation = st.selectbox("Designation *", [
-                    "Select Designation",
-                    "Consultant",
-                    "Senior Resident",
-                    "Junior Resident",
-                    "Staff Nurse",
-                    "Nursing Supervisor",
-                    "Technician",
-                    "Pharmacist",
-                    "Administrative Staff",
-                    "Manager",
-                    "Executive",
-                    "Support Staff",
-                    "Intern",
-                    "Other"
-                ])
-            
+                mobile = st.text_input("Mobile Number *", placeholder="+91-XXXXXXXXXX")
             with col2:
-                joining_date = st.date_input("Joining Date *")
+                employee_id = st.text_input("Employee ID (if allotted)", placeholder="e.g., MED2024001")
+            
+            # Row 3: Department Category and Sub Department
+            col1, col2 = st.columns(2)
+            with col1:
+                dept_category = st.selectbox("Department Category *", 
+                                             ["Select"] + list(DEPARTMENT_CATEGORIES.keys()))
+            with col2:
+                sub_department = st.selectbox("Sub Department *", 
+                                              ["Select"] + (DEPARTMENT_CATEGORIES.get(dept_category, []) if dept_category != "Select" else []))
             
             submitted = st.form_submit_button("Register & Continue →", use_container_width=True)
             
             if submitted:
-                if (name and email and mobile and dept_category != "Select Category" and 
-                    sub_department != "Select Sub Department" and designation != "Select Designation"):
-                    
+                if name and email and mobile and dept_category != "Select" and sub_department != "Select":
                     existing_user = get_user_by_email(email)
                     if existing_user:
-                        st.error("⚠️ This email is already registered! Please use the Returning User login.")
+                        st.error("⚠️ This email is already registered! Use Returning User login.")
                     else:
                         user_info = {
                             'name': name,
@@ -528,14 +334,10 @@ def show_registration():
                             'employee_id': employee_id if employee_id else "Pending",
                             'department_category': dept_category,
                             'sub_department': sub_department,
-                            'designation': designation,
-                            'joining_date': str(joining_date),
                             'user_type': 'new_hire'
                         }
-                        
                         user_id = add_user(user_info)
                         user_info['user_id'] = user_id
-                        
                         st.session_state.user = user_info
                         st.session_state.page = 'handbook'
                         st.rerun()
@@ -547,7 +349,7 @@ def show_registration():
         st.rerun()
 
 def show_returning_login():
-    """Show returning user login"""
+    """SIMPLIFIED RETURNING USER LOGIN"""
     st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">👤 Returning User Login</h2>', unsafe_allow_html=True)
     
     with st.container():
@@ -574,7 +376,7 @@ def show_returning_login():
                             st.session_state.page = 'user_dashboard'
                             st.rerun()
                         else:
-                            st.error("⚠️ Email not found! Please check or register as New Hire.")
+                            st.error("⚠️ Email not found! Please register as New Hire.")
                 else:
                     if emp_id:
                         user = get_user_by_employee_id(emp_id)
@@ -583,23 +385,19 @@ def show_returning_login():
                             st.session_state.page = 'user_dashboard'
                             st.rerun()
                         else:
-                            st.error("⚠️ Employee ID not found! Please check or register as New Hire.")
+                            st.error("⚠️ Employee ID not found! Please register as New Hire.")
 
 def show_user_dashboard():
-    """Show returning user dashboard"""
     user = st.session_state.user
+    st.markdown(f'<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">👋 Welcome back, {user["name"]}!</h2>', unsafe_allow_html=True)
     
-    st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">👋 Welcome back, ' + user["name"] + '!</h2>', unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown("### Your Profile")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Employee ID:** {user.get('employee_id', 'N/A')}")
-            st.write(f"**Department:** {user.get('sub_department', 'N/A')}")
-        with col2:
-            st.write(f"**Category:** {user.get('department_category', 'N/A')}")
-            st.write(f"**Email:** {user.get('email', 'N/A')}")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f"**Employee ID:** {user.get('employee_id', 'N/A')}")
+        st.write(f"**Department:** {user.get('sub_department', 'N/A')}")
+    with col2:
+        st.write(f"**Category:** {user.get('department_category', 'N/A')}")
+        st.write(f"**Email:** {user.get('email', 'N/A')}")
     
     data = load_data()
     user_assessments = []
@@ -610,7 +408,6 @@ def show_user_dashboard():
     
     if user_assessments:
         st.markdown("### 📊 Your Assessment History")
-        
         for assessment in reversed(user_assessments[-5:]):
             status_color = "green" if assessment['status'] == "Passed" else "red"
             st.markdown(f"**Date:** {assessment['date']} | **Score:** {assessment['score']}/{assessment['total']} ({assessment['percentage']:.1f}%) | **Status:** :{status_color}[{assessment['status']}]")
@@ -622,12 +419,10 @@ def show_user_dashboard():
     
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
-    
     with col1:
         if st.button("📚 Review Handbook", use_container_width=True):
             st.session_state.page = 'handbook'
             st.rerun()
-    
     with col2:
         if st.button("📝 Take Assessment", use_container_width=True):
             st.session_state.answers = {}
@@ -635,7 +430,6 @@ def show_user_dashboard():
             st.session_state.submitted = False
             st.session_state.page = 'assessment'
             st.rerun()
-    
     with col3:
         if st.button("🚪 Logout", use_container_width=True):
             st.session_state.user = None
@@ -643,23 +437,17 @@ def show_user_dashboard():
             st.rerun()
 
 def show_handbook():
-    """Show employee handbook - FIXED VERSION WITH NO HTML ESCAPING ISSUES"""
     st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">📚 Employee Handbook</h2>', unsafe_allow_html=True)
     
     tabs = st.tabs(["🏥 About Medanta", "📖 Policies", "🎥 Video Tour", "📞 Contacts"])
     
     with tabs[0]:
-        # Use st.markdown with unsafe_allow_html=False (default) to render properly
         st.header("About Medanta - The Medicity")
-        
         st.write("Medanta is one of India's largest multi-super specialty medical institutes located in Gurgaon. Founded by Dr. Naresh Trehan, Medanta brings together outstanding doctors, scientists, and technologists to provide world-class healthcare.")
-        
         st.subheader("Our Vision")
         st.write("To create an integrated healthcare system that provides high-quality, affordable care to all sections of society.")
-        
         st.subheader("Our Mission")
         st.write("To deliver international standard healthcare through innovative, ethical, and patient-centric services.")
-        
         st.subheader("Core Values")
         st.markdown("""
         - **Patient First:** Every decision prioritizes patient welfare
@@ -671,28 +459,18 @@ def show_handbook():
     
     with tabs[1]:
         st.header("Key Policies")
-        
         st.subheader("🔒 Confidentiality Policy")
         st.write("All patient information is strictly confidential. Never discuss patient details in public areas or share on social media.")
-        
         st.subheader("⏰ Attendance Policy")
-        st.write("Standard working hours are 9 AM to 6 PM. Shift workers must follow their assigned schedules. Inform your supervisor 24 hours in advance for planned leaves.")
-        
+        st.write("Standard working hours are 9 AM to 6 PM. Inform your supervisor 24 hours in advance for planned leaves.")
         st.subheader("👔 Dress Code")
         st.write("Professional attire is mandatory. Clinical staff must wear clean uniforms and ID badges at all times.")
-        
-        st.subheader("📱 Communication Policy")
-        st.write("Use official channels for work communication. Personal devices should not be used during patient care except in emergencies.")
-        
         st.subheader("⚠️ Safety Policy")
-        st.write("Report all incidents, near-misses, and hazards immediately. Your safety and patient safety are our top priorities.")
+        st.write("Report all incidents immediately. Your safety and patient safety are our top priorities.")
     
     with tabs[2]:
         st.header("Virtual Tour of Medanta")
-        st.write("Experience our state-of-the-art facilities through this virtual tour.")
-        
         st.info("🎬 Virtual Tour Video - In production. Contact HR for physical facility tour.")
-        
         st.subheader("Key Facilities")
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -707,7 +485,6 @@ def show_handbook():
     
     with tabs[3]:
         st.header("Emergency & Key Contacts")
-        
         cols = st.columns(2)
         for idx, contact in enumerate(CONTACTS):
             with cols[idx % 2]:
@@ -731,7 +508,6 @@ def show_handbook():
             st.rerun()
 
 def show_assessment():
-    """Show assessment questions"""
     if st.session_state.submitted:
         show_report_card()
         return
@@ -747,28 +523,20 @@ def show_assessment():
     
     q = QUESTIONS[st.session_state.current_question]
     
-    with st.container():
-        st.markdown(f"**Category:** {q['category']}")
-        st.markdown(f"### {q['id']}. {q['question']}")
-        
-        selected_option = st.radio(
-            "Select your answer:",
-            q['options'],
-            key=f"q_{q['id']}",
-            index=None
-        )
-        
-        if selected_option:
-            st.session_state.answers[q['id']] = selected_option
+    st.markdown(f"**Category:** {q['category']}")
+    st.markdown(f"### {q['id']}. {q['question']}")
+    
+    selected_option = st.radio("Select your answer:", q['options'], key=f"q_{q['id']}", index=None)
+    
+    if selected_option:
+        st.session_state.answers[q['id']] = selected_option
     
     col1, col2, col3 = st.columns([1, 1, 1])
-    
     with col1:
         if st.session_state.current_question > 0:
             if st.button("← Previous", use_container_width=True):
                 st.session_state.current_question -= 1
                 st.rerun()
-    
     with col3:
         if st.session_state.current_question < total_questions - 1:
             if st.button("Next →", use_container_width=True):
@@ -787,15 +555,12 @@ def show_assessment():
                     st.warning("⚠️ Please select an answer!")
 
 def show_report_card():
-    """Show assessment results"""
     correct, total, percentage = calculate_score()
-    
     st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">📊 Your Report Card</h2>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.metric("Your Score", f"{percentage:.1f}%", f"{correct}/{total} correct")
-        
         if percentage >= 80:
             st.success("🎉 Excellent! Passed with Distinction")
         elif percentage >= 70:
@@ -804,7 +569,6 @@ def show_report_card():
             st.warning("⚠️ Needs Improvement")
         else:
             st.error("❌ Failed - Please Retake")
-        
         st.write(f"**Name:** {st.session_state.user['name']}")
         st.write(f"**Department:** {st.session_state.user.get('sub_department', 'N/A')}")
     
@@ -820,32 +584,23 @@ def show_report_card():
     
     if percentage >= 70:
         st.success("🎉 Congratulations! You have successfully completed the Medanta Induction Program!")
-        
         cert_text = f"""
-        CERTIFICATE OF COMPLETION
-        ----------------------------
-        This certifies that
-        
-        {st.session_state.user['name']}
-        
-        has successfully completed the
-        Medanta New Hire Induction Program
-        
-        Employee ID: {st.session_state.user.get('employee_id', 'N/A')}
-        Department: {st.session_state.user.get('sub_department', 'N/A')}
-        Score: {percentage:.1f}%
-        Date: {datetime.now().strftime("%B %d, %Y")}
-        
-        Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
-        """
-        
-        st.download_button(
-            label="📥 Download Certificate",
-            data=cert_text,
-            file_name=f"Medanta_Certificate_{st.session_state.user.get('employee_id', 'User')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+CERTIFICATE OF COMPLETION
+----------------------------
+This certifies that
+{st.session_state.user['name']}
+has successfully completed the
+Medanta New Hire Induction Program
+
+Employee ID: {st.session_state.user.get('employee_id', 'N/A')}
+Department: {st.session_state.user.get('sub_department', 'N/A')}
+Score: {percentage:.1f}%
+Date: {datetime.now().strftime("%B %d, %Y")}
+Certificate ID: CERT{datetime.now().strftime('%Y%m%d%H%M%S')}
+"""
+        st.download_button(label="📥 Download Certificate", data=cert_text, 
+                          file_name=f"Medanta_Certificate_{st.session_state.user.get('employee_id', 'User')}.txt", 
+                          mime="text/plain", use_container_width=True)
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -864,30 +619,24 @@ def show_report_card():
             st.rerun()
 
 def show_admin_login():
-    """Show admin login"""
     st.markdown('<h2 style="text-align: center; color: #8B1538; font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">🔐 Admin Login</h2>', unsafe_allow_html=True)
-    
-    with st.container():
-        username = st.text_input("👤 Admin Username")
-        password = st.text_input("🔑 Password", type="password")
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            if st.button("← Back", use_container_width=True):
-                st.session_state.page = 'landing'
+    username = st.text_input("👤 Admin Username")
+    password = st.text_input("🔑 Password", type="password")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("← Back", use_container_width=True):
+            st.session_state.page = 'landing'
+            st.rerun()
+    with col3:
+        if st.button("Login →", use_container_width=True):
+            if username == "admin" and password == "medanta2024":
+                st.session_state.admin_authenticated = True
+                st.session_state.page = 'admin_dashboard'
                 st.rerun()
-        
-        with col3:
-            if st.button("Login →", use_container_width=True):
-                if username == "admin" and password == "medanta2024":
-                    st.session_state.admin_authenticated = True
-                    st.session_state.page = 'admin_dashboard'
-                    st.rerun()
-                else:
-                    st.error("Invalid credentials!")
+            else:
+                st.error("Invalid credentials!")
 
 def show_admin_dashboard():
-    """Show admin dashboard"""
     if not st.session_state.admin_authenticated:
         st.session_state.page = 'admin_login'
         st.rerun()
@@ -900,68 +649,51 @@ def show_admin_dashboard():
     
     total_users = len(data['users'])
     total_assessments = len(results)
-    
     passed = sum(1 for r in results if r['status'] == "Passed")
-    failed = total_assessments - passed
-    
     avg_score = sum(r['percentage'] for r in results) / total_assessments if total_assessments > 0 else 0
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total Registered Users", total_users)
+        st.metric("Total Users", total_users)
     with col2:
-        st.metric("Total Assessments", total_assessments)
+        st.metric("Assessments", total_assessments)
     with col3:
-        st.metric("Average Score", f"{avg_score:.1f}%")
+        st.metric("Avg Score", f"{avg_score:.1f}%")
     with col4:
         st.metric("Pass Rate", f"{(passed/total_assessments*100):.1f}%" if total_assessments > 0 else "0%")
     
-    tabs = st.tabs(["📋 All Users", "📊 Assessment Results", "📈 Analytics"])
+    tabs = st.tabs(["📋 All Users", "📊 Results", "📈 Analytics"])
     
     with tabs[0]:
-        st.markdown("### Registered Users")
-        
         if data['users']:
             users_df = pd.DataFrame(data['users'])
-            display_cols = ['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department', 'registration_date']
-            available_cols = [col for col in display_cols if col in users_df.columns]
-            st.dataframe(users_df[available_cols], use_container_width=True)
-            
+            st.dataframe(users_df[['user_id', 'name', 'email', 'employee_id', 'department_category', 'sub_department']], use_container_width=True)
             csv = users_df.to_csv(index=False)
             st.download_button("📥 Download Users CSV", csv, f"medanta_users_{datetime.now().strftime('%Y%m%d')}.csv", "text/csv")
         else:
             st.info("No users registered yet.")
     
     with tabs[1]:
-        st.markdown("### Assessment Results")
-        
         if results:
             results_df = pd.DataFrame(results)
-            display_cols = ['date', 'result_id', 'name', 'employee_id', 'department_category', 'sub_department', 'score', 'total', 'percentage', 'status']
-            available_cols = [col for col in display_cols if col in results_df.columns]
-            st.dataframe(results_df[available_cols], use_container_width=True)
-            
+            st.dataframe(results_df[['date', 'name', 'employee_id', 'department_category', 'score', 'total', 'percentage', 'status']], use_container_width=True)
             csv = results_df.to_csv(index=False)
             st.download_button("📥 Download Results CSV", csv, f"medanta_results_{datetime.now().strftime('%Y%m%d')}.csv", "text/csv")
         else:
-            st.info("No assessment results yet.")
+            st.info("No results yet.")
     
     with tabs[2]:
-        st.markdown("### Department-wise Analysis")
-        
         if results:
             results_df = pd.DataFrame(results)
-            dept_stats = results_df.groupby('department_category')['percentage'].agg(['mean', 'count']).reset_index()
-            dept_stats.columns = ['Department Category', 'Average Score', 'Count']
-            st.bar_chart(dept_stats.set_index('Department Category')['Average Score'])
+            dept_stats = results_df.groupby('department_category')['percentage'].mean().reset_index()
+            st.bar_chart(dept_stats.set_index('department_category'))
     
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.admin_authenticated = False
         st.session_state.page = 'landing'
         st.rerun()
 
-# ============== MAIN APP ==============
-
+# ============== MAIN ==============
 def main():
     if st.session_state.page == 'landing':
         show_landing()
