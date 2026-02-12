@@ -397,44 +397,6 @@ input:focus, textarea:focus, select:focus {
     font-size: 2rem;
     font-weight: 700;
 }
-
-/* Question navigation boxes */
-.question-nav-box {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 5px;
-}
-
-.question-nav-box.current {
-    background: #800020;
-    color: white;
-    border: 2px solid #D4AF37;
-    box-shadow: 0 4px 15px rgba(128, 0, 32, 0.3);
-}
-
-.question-nav-box.answered {
-    background: #D4AF37;
-    color: #800020;
-    border: 2px solid #800020;
-}
-
-.question-nav-box.pending {
-    background: white;
-    color: #666666;
-    border: 1px solid #D4AF37;
-}
-
-.question-nav-box:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -753,7 +715,7 @@ elif st.session_state.page == 'jci_handbook':
         st.session_state.page = 'employee_dashboard'
         st.rerun()
 
-# ASSESSMENT - With separate clickable question boxes and auto-advance
+# ASSESSMENT - Fixed with ALL questions showing properly
 elif st.session_state.page == 'assessment':
     user = st.session_state.user
     
@@ -791,100 +753,134 @@ elif st.session_state.page == 'assessment':
     
     current_module = questions_data[module_ids[current_idx]]
     questions = current_module['questions']
+    total_questions = len(questions)
+    
+    # Safety check - ensure current_question_idx is valid
+    if st.session_state.current_question_idx >= total_questions:
+        st.session_state.current_question_idx = 0
     
     # Progress header
     st.markdown(f"""
     <div style="margin-bottom: 20px;">
         <h2 style="color: #800020; margin-bottom: 5px;">{current_module['name']}</h2>
-        <p style="color: #666666;">Module {current_idx + 1} of {len(module_ids)} • {len(questions)} Questions</p>
+        <p style="color: #666666;">Module {current_idx + 1} of {len(module_ids)} • {total_questions} Questions</p>
         <div class="progress-container" style="margin-top: 10px;">
-            <div class="progress-bar" style="width: {(st.session_state.current_question_idx/len(questions))*100}%;"></div>
+            <div class="progress-bar" style="width: {(st.session_state.current_question_idx/total_questions)*100}%;"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Question navigation boxes - separate clickable boxes
-    st.markdown("<div style='margin-bottom: 30px;'>", unsafe_allow_html=True)
+    # Question navigation boxes - ALL questions in rows of 10
+    st.markdown("<div style='margin-bottom: 30px;'><p style='color: #800020; font-weight: 600; margin-bottom: 10px;'>Jump to Question:</p>", unsafe_allow_html=True)
     
-    # Create rows of question boxes (10 per row)
+    # Calculate how many rows we need
     questions_per_row = 10
-    num_rows = (len(questions) + questions_per_row - 1) // questions_per_row
+    num_rows = (total_questions + questions_per_row - 1) // questions_per_row
     
     for row in range(num_rows):
-        cols = st.columns(min(questions_per_row, len(questions) - row * questions_per_row))
-        for i, col in enumerate(cols):
-            q_num = row * questions_per_row + i
-            if q_num < len(questions):
-                with col:
-                    # Determine box style based on state
-                    if q_num == st.session_state.current_question_idx:
-                        box_class = "current"
-                        label = f"Q{q_num+1}"
-                    elif q_num in st.session_state.answers:
-                        box_class = "answered"
-                        label = f"✓{q_num+1}"
-                    else:
-                        box_class = "pending"
-                        label = f"{q_num+1}"
-                    
-                    # Use HTML buttons for better styling
-                    if st.button(
-                        label, 
-                        key=f"nav_q_{q_num}",
-                        use_container_width=True,
-                        type="secondary"
-                    ):
-                        st.session_state.current_question_idx = q_num
-                        st.rerun()
+        start_idx = row * questions_per_row
+        end_idx = min(start_idx + questions_per_row, total_questions)
+        num_cols = end_idx - start_idx
+        
+        cols = st.columns(num_cols)
+        
+        for i in range(start_idx, end_idx):
+            col_idx = i - start_idx
+            with cols[col_idx]:
+                # Determine button style based on state
+                if i == st.session_state.current_question_idx:
+                    # Current question - primary (maroon)
+                    btn_type = "primary"
+                    label = f"Q{i+1}"
+                elif i in st.session_state.answers:
+                    # Answered - secondary (will be gold via CSS)
+                    btn_type = "secondary"
+                    label = f"✓{i+1}"
+                else:
+                    # Not answered - secondary (white)
+                    btn_type = "secondary"
+                    label = f"{i+1}"
+                
+                # Create button
+                if st.button(
+                    label, 
+                    key=f"nav_q_{current_idx}_{i}",
+                    use_container_width=True,
+                    type=btn_type
+                ):
+                    st.session_state.current_question_idx = i
+                    st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
     
     # Current question display
     current_q_idx = st.session_state.current_question_idx
+    
+    # Ensure index is valid
+    if current_q_idx >= total_questions:
+        current_q_idx = 0
+        st.session_state.current_question_idx = 0
+    
     current_q = questions[current_q_idx]
     
+    # Display question
     st.markdown(f"""
     <div style="background: white; border: 3px solid #D4AF37; border-radius: 20px; padding: 35px; margin: 25px 0; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <span style="background: linear-gradient(135deg, #800020, #A00030); color: white; padding: 10px 20px; border-radius: 25px; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(128,0,32,0.3);">
-                Question {current_q_idx + 1} of {len(questions)}
+                Question {current_q_idx + 1} of {total_questions}
             </span>
             <span style="color: #D4AF37; font-weight: 700; font-size: 1.1rem;">
-                {len(questions) - current_q_idx} remaining
+                {total_questions - current_q_idx} remaining
             </span>
         </div>
         <h3 style="color: #800020; font-size: 1.5rem; margin-bottom: 30px; line-height: 1.6; font-weight: 600;">
-            {current_q['question']}
+            {current_q.get('question', 'Question text not available')}
         </h3>
     </div>
     """, unsafe_allow_html=True)
     
-    # Answer options with auto-advance
+    # Get current answer if exists
     current_answer = st.session_state.answers.get(current_q_idx)
+    options = current_q.get('options', [])
     
+    if not options:
+        st.error("⚠️ No options found for this question!")
+        st.stop()
+    
+    # Determine index for radio
+    try:
+        current_index = options.index(current_answer) if current_answer in options else None
+    except:
+        current_index = None
+    
+    # Answer options with auto-advance
     selected_answer = st.radio(
         "Choose your answer:",
-        current_q['options'],
-        index=current_q['options'].index(current_answer) if current_answer else None,
+        options,
+        index=current_index,
         key=f"answer_q_{current_idx}_{current_q_idx}",
         label_visibility="collapsed"
     )
     
-    # Auto-advance logic - move to next question immediately when answer selected
+    # Auto-advance logic
     if selected_answer is not None and selected_answer != current_answer:
-        # Store answer in session state
+        # Store answer
         st.session_state.answers[current_q_idx] = selected_answer
         
-        # Auto advance to next question if not last
-        if current_q_idx < len(questions) - 1:
+        # Auto advance if not last question
+        if current_q_idx < total_questions - 1:
             st.session_state.current_question_idx = current_q_idx + 1
             st.rerun()
     
-    # Show completion message if all answered
-    if len(st.session_state.answers) == len(questions):
+    # Show completion message
+    answered_count = len(st.session_state.answers)
+    if answered_count == total_questions:
         st.success("🎉 All questions answered! Click Submit to check your score.")
+    else:
+        st.info(f"📊 Progress: {answered_count}/{total_questions} questions answered")
     
-    # Navigation and Submit buttons
+    # Navigation buttons
     st.markdown("<hr style='border-color: #D4AF37; margin: 30px 0;'>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -895,16 +891,22 @@ elif st.session_state.page == 'assessment':
             st.rerun()
     
     with col2:
-        # Show submit button only when all questions answered
-        if len(st.session_state.answers) == len(questions):
+        # Show submit only when all questions answered
+        if answered_count == total_questions:
             if st.button("✅ Submit Module", type="primary", use_container_width=True):
-                # Calculate score
+                # Calculate score with safety checks
                 correct_count = 0
-                for i, q in enumerate(questions):
-                    if i in st.session_state.answers and st.session_state.answers[i] == q['options'][q['correct']]:
-                        correct_count += 1
+                for i in range(total_questions):
+                    if i < len(questions):
+                        q = questions[i]
+                        correct_idx = q.get('correct', 0)
+                        opts = q.get('options', [])
+                        correct_option = opts[correct_idx] if correct_idx < len(opts) else None
+                        
+                        if i in st.session_state.answers and st.session_state.answers[i] == correct_option:
+                            correct_count += 1
                 
-                percentage = (correct_count / len(questions)) * 100
+                percentage = (correct_count / total_questions) * 100 if total_questions > 0 else 0
                 
                 # Save result
                 data = load_data()
@@ -919,20 +921,20 @@ elif st.session_state.page == 'assessment':
                         break
                 save_data(data)
                 
-                # Store result for display
+                # Store result
                 st.session_state.last_score = percentage
                 st.session_state.last_passed = percentage >= 80
                 
-                # Clear answers for next time
+                # Clear answers
                 st.session_state.answers = {}
                 st.session_state.current_question_idx = 0
                 
                 st.rerun()
     
     with col3:
-        if current_q_idx < len(questions) - 1:
+        if current_q_idx < total_questions - 1:
             if st.button("Next →", use_container_width=True):
-                st.session_state.current_question_idx = min(len(questions) - 1, current_q_idx + 1)
+                st.session_state.current_question_idx = min(total_questions - 1, current_q_idx + 1)
                 st.rerun()
         else:
             st.button("Next →", disabled=True, use_container_width=True)
